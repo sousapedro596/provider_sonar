@@ -23,35 +23,56 @@ set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++1 -O3" )
 #===============================================================================
 # C A T K I N   C O N F I G U R A T I O N
 
-find_package(catkin REQUIRED COMPONENTS
-   std_msgs
+find_package( catkin REQUIRED COMPONENTS
    roscpp
    message_generation
-   message_runtime
+   std_msgs
+   std_srvs
 )
+
+find_package( Boost REQUIRED COMPONENTS thread )
+
+#===============================================================================
+# G E N E R A T E   M E S S A G E S   &   S E R V I C E S
+
+add_message_files(
+    DIRECTORY msg
+    FILES
+    IntensityBin.msg
+    ScanLine.msg
+)
+
+add_service_files(
+    DIRECTORY srv
+    FILES
+    sonar_reconfig.srv
+    scanline_parser_reconfig.srv
+)
+
+generate_messages( DEPENDENCIES std_msgs )
 
 # Declare this project as a catkin package and export the necessary build flags
 catkin_package(
    INCLUDE_DIRS src
-   LIBRARIES 
-   CATKIN_DEPENDS roscpp std_msgs 
+   LIBRARIES
+   CATKIN_DEPENDS
+   roscpp
+   message_runtime
+   std_msgs
+   std_srvs
+   DEPENDS Boost thread
 )
-
 
 #===============================================================================
 # I N C L U D E   F I L E S
 
-set( provider_sonar_SRC_DIR "src" )
-
-# Get all the files of the projects.
-file( GLOB_RECURSE provider_sonar_FILES
-   "${provider_sonar_SRC_DIR}/*.cc"
-   "${provider_sonar_SRC_DIR}/*.h"
-)
+set( provider_sonar_INCLUDE_DIRS "src" )
+set( provider_sonar_SRC_DIR "src/provider_sonar" )
 
 # Include all the directories where source can be found.
 include_directories(
-   ${provider_sonar_SRC_DIR}
+   ${provider_sonar_INCLUDE_DIRS}
+   ${Boost_INCLUDE_DIRS}
    ${catkin_INCLUDE_DIRS}
 )
 
@@ -60,18 +81,15 @@ include_directories(
 
 set( TARGET_NAME provider_sonar_node )
 add_executable( ${TARGET_NAME}
-    ${provider_sonar_FILES}
-)
+    ${provider_sonar_SRC_DIR}/main.cpp
+    ${provider_sonar_SRC_DIR}/Serial.cpp
+    ${provider_sonar_SRC_DIR}/tritech_micron_driver.cpp )
+target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
+set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
+add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
 
-
-
-set_target_properties( ${TARGET_NAME}
-   PROPERTIES
-   LINKER_LANGUAGE CXX
-)
-
-#==========================================================================
-# C R E A T I N G   U N I T   T E S T S
-
-
-
+set( TARGET_NAME micron_driver_scanline_parser )
+add_executable( ${TARGET_NAME} ${provider_sonar_SRC_DIR}/scan_line_converter_node.cpp )
+target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} )
+set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
+add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
