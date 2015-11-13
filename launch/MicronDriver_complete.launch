@@ -1,0 +1,21 @@
+<launch>
+
+<!--Load parameters for the Sonar driver -->
+<rosparam command="load" file="$(find provider_sonar)/config/tritech_micron_config.yaml"/>
+
+<!--Create a sonar driver node-->
+<node pkg="provider_sonar" type="provider_sonar_node" name="micron_driver" output="screen" />
+
+<!-- Load parameters for the scanline parser-->
+<rosparam command="load" file="$(find provider_sonar)/config/scan_line_parser_config.yaml"/>
+
+<!--Create a node parser -->
+<node pkg="provider_sonar" type="micron_driver_scanline_parser" name="Scanline_parser" output="screen" />
+
+<!--Set the frame for the Sonar -->
+ <node pkg="tf" type="static_transform_publisher" name="Sonar_to_world" args="0.5 0.0 0.0 1.57 1.57 1.57 /sparus2 /Micron  100" />
+
+<!--Launch RViz -->
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find provider_sonar)/config/Rviz_config.rviz" />
+  
+</launch>
