@@ -62,7 +62,7 @@ class TritechMicron {
     getparams(nh);
 
     if (!simulate_) {
-      scan_line_pub_ = nh.advertise<_ScanLineMsgType>("scan_line", 1);
+      scan_line_pub_ = nh.advertise<_ScanLineMsgType>("scan_line", 100);
 
       driver_ = new TritechMicronDriver(num_bins_, range_, velocity_of_sound_,
                                         angle_step_size_, leftLimit_,

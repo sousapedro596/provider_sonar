@@ -87,8 +87,8 @@ class ScanLineConverter {
     scan_line_sub_ = nh.subscribe("/micron_driver/scan_line", 1,
                                   &ScanLineConverter::scanLineCB, this);
     // Publishers
-    laser_scan_pub_ = nh.advertise<_LaserScanMsgType>("laser_scan", 1);
-    point_cloud_pub_ = nh.advertise<_PointCloudMsgType>("point_cloud", 1);
+    laser_scan_pub_ = nh.advertise<_LaserScanMsgType>("laser_scan", 100);
+    point_cloud_pub_ = nh.advertise<_PointCloudMsgType>("point_cloud", 100);
     // Service
     reconfigserver = nh.advertiseService("Scanline_Reconfiguration",
                                          &ScanLineConverter::reconfig, this);
@@ -304,7 +304,7 @@ class ScanLineConverter {
     }
 
     point_cloud_msg->channels.push_back(channel);
-
+    ROS_WARN("PUBLISHING TO POiNT CLOuD");
     point_cloud_pub_.publish(point_cloud_msg);
   }
 };
