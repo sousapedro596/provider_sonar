@@ -78,7 +78,7 @@ class ScanLineConverter {
       last_scan_angle_;
   int last_angular_direction_;
 
-  _LaserScanMsgType laser_scan_msg_;
+  //_LaserScanMsgType laser_scan_msg_;
 
   ScanLineConverter(ros::NodeHandle &nh)
 
@@ -159,8 +159,8 @@ class ScanLineConverter {
   }
 
   void clearLaserStats() {
-    laser_scan_msg_.ranges.clear();
-    laser_scan_msg_.intensities.clear();
+    //laser_scan_msg_.ranges.clear();
+    //laser_scan_msg_.intensities.clear();
     min_laser_distance_ = std::numeric_limits<float>::max();
     max_laser_distance_ = std::numeric_limits<float>::min();
     angular_distance_ = 0;
@@ -171,20 +171,24 @@ class ScanLineConverter {
   // Callback when a scanline is received
   void scanLineCB(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     //publishLaserScan(scan_line_msg);
+    ROS_INFO("Publishing");
     publishLaserScanTest(scan_line_msg);
     publishPointCloud(scan_line_msg);
   }
 
   void publishLaserScanTest(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     // - TODO: Change msg format. Hack.
-    static float angle_min = math_utils::degToRad(135);
-    static float angle_max = math_utils::degToRad(225);
-    static float angle_increment = math_utils::degToRad(0.9);
+    //static float angle_min = math_utils::degToRad(135);
+    //static float angle_max = math_utils::degToRad(225);
+    //static float angle_increment = math_utils::degToRad(0.9);
+    _LaserScanMsgType laser_scan_msg_;
+    ROS_INFO("Publishing laserscan");
+
     laser_scan_msg_.range_min = 0;
     laser_scan_msg_.range_max = 9;
-    laser_scan_msg_.angle_min = angle_min;
-    laser_scan_msg_.angle_max = angle_max;
-    laser_scan_msg_.angle_increment = angle_increment;
+    laser_scan_msg_.angle_min = 2.35619;//angle_min;
+    laser_scan_msg_.angle_max = 3.92699;//angle_max;
+    laser_scan_msg_.angle_increment = 0.015708;//angle_increment;
     // Range * 2 / Sound_velocity_water
     laser_scan_msg_.scan_time = 9.0 * 2.0 / 1500.0;
     // -
@@ -195,12 +199,11 @@ class ScanLineConverter {
       laser_scan_msg_.ranges.at(i) = scan_line_msg->bins[i].distance;
     }
     laser_scan_pub_.publish(laser_scan_msg_); // _LaserScanMsgType::Ptr(new _LaserScanMsgType(laser_scan_msg_))
-    ROS_INFO("Publishing Laserscan");
     clearLaserStats();
   }
   void publishLaserScan(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     _IntensityBinMsgType bin = getThresholdedScanLine(scan_line_msg);
-
+    _LaserScanMsgType laser_scan_msg_;
     if (laser_scan_msg_.ranges.size() == 0) {
       laser_scan_msg_.angle_min = math_utils::degToRad(scan_line_msg->angle);
       laser_scan_msg_.header = scan_line_msg->header;
