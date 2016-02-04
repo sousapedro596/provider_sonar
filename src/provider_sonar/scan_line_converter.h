@@ -170,11 +170,32 @@ class ScanLineConverter {
 
   // Callback when a scanline is received
   void scanLineCB(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
-    publishLaserScan(scan_line_msg);
-
+    //publishLaserScan(scan_line_msg);
+    publishLaserScanTest(scan_line_msg);
     publishPointCloud(scan_line_msg);
   }
 
+  void publishLaserScanTest(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
+    // - TODO: Change msg format. Hack.
+    static float angle_min = math_utils::degToRad(135);
+    static float angle_max = math_utils::degToRad(225);
+    static float angle_increment = math_utils::degToRad(0.9);
+    laser_scan_msg_.range_min = 0;
+    laser_scan_msg_.range_max = 9;
+    laser_scan_msg_.angle_min = angle_min;
+    laser_scan_msg_.angle_max = angle_max;
+    laser_scan_msg_.angle_increment = angle_increment;
+    // Range * 2 / Sound_velocity_water
+    laser_scan_msg_.scan_time = 9.0 * 2.0 / 1500.0;
+    // -
+    laser_scan_msg_.header = scan_line_msg->header;
+    for (int i = 0; i < scan_line_msg->bins.size(); i ++)
+    {
+      laser_scan_msg_.intensities[i] = scan_line_msg->bins[i].intensity;
+      laser_scan_msg_.ranges[i] = scan_line_msg->bins[i].distance;
+    }
+
+  }
   void publishLaserScan(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     _IntensityBinMsgType bin = getThresholdedScanLine(scan_line_msg);
 
@@ -204,7 +225,7 @@ class ScanLineConverter {
 
     angular_distance_ += angular_distance_inc;
 
-    printf("%f %f %f %f %d\n", laser_scan_msg_.angle_min, scan_line_msg->angle,
+    ROS_INFO("%f %f %f %f %d\n", laser_scan_msg_.angle_min, scan_line_msg->angle,
            last_scan_angle_, angular_distance_, angular_direction);
 
     last_scan_angle_ = scan_line_msg->angle;
