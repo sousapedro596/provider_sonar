@@ -194,7 +194,9 @@ class ScanLineConverter {
       laser_scan_msg_.intensities[i] = scan_line_msg->bins[i].intensity;
       laser_scan_msg_.ranges[i] = scan_line_msg->bins[i].distance;
     }
-
+    laser_scan_pub_.publish(
+        _LaserScanMsgType::Ptr(new _LaserScanMsgType(laser_scan_msg_)));
+    clearLaserStats();
   }
   void publishLaserScan(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     _IntensityBinMsgType bin = getThresholdedScanLine(scan_line_msg);
