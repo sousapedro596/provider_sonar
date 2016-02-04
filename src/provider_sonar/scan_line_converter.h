@@ -194,8 +194,7 @@ class ScanLineConverter {
       laser_scan_msg_.intensities.at(i) = scan_line_msg->bins[i].intensity;
       laser_scan_msg_.ranges.at(i) = scan_line_msg->bins[i].distance;
     }
-    laser_scan_pub_.publish(
-        _LaserScanMsgType::Ptr(new _LaserScanMsgType(laser_scan_msg_)));
+    laser_scan_pub_.publish(laser_scan_msg_); // _LaserScanMsgType::Ptr(new _LaserScanMsgType(laser_scan_msg_))
     ROS_INFO("Publishing Laserscan");
     clearLaserStats();
   }
