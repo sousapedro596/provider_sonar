@@ -80,7 +80,7 @@ class ScanLineConverter {
   float min_laser_distance_, max_laser_distance_, angular_distance_,
       last_scan_angle_;
   int last_angular_direction_;
-  
+
 
   ScanLineConverter(ros::NodeHandle &nh)
 
@@ -198,9 +198,9 @@ class ScanLineConverter {
     int offset = 0;
     for (size_t i = 0; i < point_cloud_msg_.fields.size(); ++i, offset += 4)
     {
-      point_cloud_msg_.fields[d].offset = offset;
-      point_cloud_msg_.fields[d].datatype = sensor_msgs::PointField_::FLOAT32;
-      point_cloud_msg_.fields[d].count = 1;
+      point_cloud_msg_.fields[i].offset = offset;
+      point_cloud_msg_.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
+      point_cloud_msg_.fields[i].count = 1;
     }
     // - Offset per point of data (x, y, z, intensity)
     point_cloud_msg_.point_step = offset;
