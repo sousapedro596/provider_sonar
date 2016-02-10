@@ -171,7 +171,7 @@ class ScanLineConverter {
   // Callback when a scanline is received
   void scanLineCB(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     //publishLaserScan(scan_line_msg);
-    ROS_INFO("Publishing");
+    //ROS_INFO("Publishing");
     publishLaserScanTest(scan_line_msg);
     publishPointCloud(scan_line_msg);
   }
@@ -182,21 +182,27 @@ class ScanLineConverter {
     //static float angle_max = math_utils::degToRad(225);
     //static float angle_increment = math_utils::degToRad(0.9);
     _LaserScanMsgType laser_scan_msg_;
-    ROS_INFO("Publishing laserscan");
+    //ROS_INFO("Publishing laserscan");
 
     laser_scan_msg_.range_min = 0;
     laser_scan_msg_.range_max = 9;
-    laser_scan_msg_.angle_min = 2.35619;//angle_min;
-    laser_scan_msg_.angle_max = 3.92699;//angle_max;
-    laser_scan_msg_.angle_increment = 0.015708;//angle_increment;
+    laser_scan_msg_.angle_min = (135/360*2*3.1416);//2.35619;//angle_min;
+    laser_scan_msg_.angle_max = (135/360*2*3.1416);//(225/360*2*3.1416);//3
+    // .92699;//angle_max;
+    laser_scan_msg_.angle_increment = 0;//(0.9/360*2*3.1416);//0.015708;
+    // angle_increment;
     // Range * 2 / Sound_velocity_water
     laser_scan_msg_.scan_time = 9.0 * 2.0 / 1500.0;
     // -
     laser_scan_msg_.header = scan_line_msg->header;
+    laser_scan_msg_.intensities.resize(scan_line_msg->bins.size());
+    laser_scan_msg_.ranges.resize(1);//(scan_line_msg->bins.size());
+    laser_scan_msg_.ranges[9];
     for (int i = 0; i < scan_line_msg->bins.size(); i ++)
     {
-      laser_scan_msg_.intensities.at(i) = scan_line_msg->bins[i].intensity;
-      laser_scan_msg_.ranges.at(i) = scan_line_msg->bins[i].distance;
+      laser_scan_msg_.intensities[i] = scan_line_msg->bins[i].intensity;
+      //laser_scan_msg_.ranges[i] = (float(i)/9);//scan_line_msg->bins[i]
+      // .distance;
     }
     laser_scan_pub_.publish(laser_scan_msg_); // _LaserScanMsgType::Ptr(new _LaserScanMsgType(laser_scan_msg_))
     clearLaserStats();

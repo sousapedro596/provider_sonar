@@ -141,7 +141,8 @@ class TritechMicron {
     if (nh.hasParam("/micron_driver/port_"))
       nh.getParam("/micron_driver/port_", port_);
     else {
-      port_ = "/dev/ttyUSB0";
+      port_ = "/dev/ttyS3";
+      //port_ = "/dev/ttyUSB0";
       ROS_WARN(
           "Did not find port_ on the parameter Server, using default value "
           "instead");
@@ -159,7 +160,7 @@ class TritechMicron {
     if (nh.hasParam("/micron_driver/range_"))
       nh.getParam("/micron_driver/range_", range_);
     else {
-      range_ = 5;
+      range_ = 9;
       ROS_WARN(
           "Did not find range_ on the parameter Server, using default value "
           "instead");
@@ -177,7 +178,7 @@ class TritechMicron {
     if (nh.hasParam("/micron_driver/angle_step_size_"))
       nh.getParam("/micron_driver/angle_step_size_", angle_step_size_);
     else {
-      angle_step_size_ = 32;
+      angle_step_size_ = 16;
       ROS_WARN(
           "Did not find angle_step_size_ on the parameter Server, using "
           "default value instead");
@@ -186,7 +187,7 @@ class TritechMicron {
     if (nh.hasParam("/micron_driver/leftLimit_"))
       nh.getParam("/micron_driver/leftLimit_", leftLimit_);
     else {
-      leftLimit_ = 1;
+      leftLimit_ = 2400;
       ROS_WARN(
           "Did not find leftLimit_ on the parameter Server, using default "
           "value instead");
@@ -195,7 +196,7 @@ class TritechMicron {
     if (nh.hasParam("/micron_driver/rightLimit_"))
       nh.getParam("/micron_driver/rightLimit_", rightLimit_);
     else {
-      rightLimit_ = 6399;
+      rightLimit_ = 4000;
       ROS_WARN(
           "Did not find rightLimit_ on the parameter Server, using default "
           "value instead");
