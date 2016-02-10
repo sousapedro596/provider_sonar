@@ -42,6 +42,7 @@
 
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
 #include "ros/ros.h"
 
 // Service includes
@@ -52,6 +53,7 @@ typedef provider_sonar::IntensityBin _IntensityBinMsgType;
 
 typedef sensor_msgs::LaserScan _LaserScanMsgType;
 typedef sensor_msgs::PointCloud _PointCloudMsgType;
+
 
 typedef float _StepType;
 typedef float _AngleType;
@@ -65,6 +67,7 @@ class ScanLineConverter {
   // Publishers
   ros::Publisher laser_scan_pub_;
   ros::Publisher point_cloud_pub_;
+  ros::Publisher point_cloud2_pub_;
   ros::Publisher image_pub_;
 
   // Services
@@ -89,6 +92,8 @@ class ScanLineConverter {
     // Publishers
     laser_scan_pub_ = nh.advertise<_LaserScanMsgType>("laser_scan", 100);
     point_cloud_pub_ = nh.advertise<_PointCloudMsgType>("point_cloud", 100);
+    point_cloud2_pub_ = nh.advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
+
     // Service
     reconfigserver = nh.advertiseService("Scanline_Reconfiguration",
                                          &ScanLineConverter::reconfig, this);
@@ -172,10 +177,61 @@ class ScanLineConverter {
   void scanLineCB(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     //publishLaserScan(scan_line_msg);
     //ROS_INFO("Publishing");
-    publishLaserScanTest(scan_line_msg);
-    publishPointCloud(scan_line_msg);
+    //publishLaserScanTest(scan_line_msg);
+    //publishPointCloud(scan_line_msg);
   }
+  void publishPointCloud2(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
+    sensor_msgs::PointCloud2 point_cloud_msg_;
+    // - Copy ROS header
+    point_cloud_msg_.header = scan_line_msg->header;
+    // - TODO: Wtf is height and width
+    point_cloud_msg_.width = scan_line_msg->bins.size();
+    point_cloud_msg_.height = 1;
+    // - Fields: x, y, z, intensity
+    // - Fields describe the binary blob in data
+    point_cloud_msg_.fields.resize(4);
+    point_cloud_msg_.fields[0].name = "x";
+    point_cloud_msg_.fields[1].name = "y";
+    point_cloud_msg_.fields[2].name = "z";
+    point_cloud_msg_.fields[3].name = "intensity";
+    // - Offset from the beginning of the point struct in bytes
+    int offset = 0;
+    for (size_t i = 0; i < point_cloud_msg_.fields.size(); ++i, offset += 4)
+    {
+      point_cloud_msg_.fields[d].offset = offset;
+      point_cloud_msg_.fields[d].datatype = sensor_msgs::PointField_::FLOAT32;
+      point_cloud_msg_.fields[d].count = 1;
+    }
+    // - Offset per point of data (x, y, z, intensity)
+    point_cloud_msg_.point_step = offset;
+    // - length of the row TODO: is it ok?
+    point_cloud_msg_.row_step = point_cloud_msg_.width;
+    point_cloud_msg_.data.resize(point_cloud_msg_.point_step * point_cloud_msg_.row_step);
+    point_cloud_msg_.is_bigendian = false;
+    point_cloud_msg_.is_dense = false;
 
+    // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
+    float delta_x = scan_line_msg->bin_distance_step * cos(math_utils::degToRad(scan_line_msg->angle - 180.0));
+    float delta_y = scan_line_msg->bin_distance_step * sin(math_utils::degToRad(scan_line_msg->angle - 180.0));
+
+    // - try with distance * cos (theta)
+    float coordinate_x = 0;
+    float coordinate_y = 0;
+    float coordinate_z = 0;
+    for (size_t i = 0; i < scan_line_msg->bins.size(); ++i, coordinate_x += delta_x, coordinate_y += delta_y){
+      float bin_intensity = (float)(scan_line_msg->bins[i].intensity)/255.0;
+      memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[0].offset], &coordinate_x, sizeof(float));
+      memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[1].offset], &coordinate_y, sizeof(float));
+      memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[2].offset], &coordinate_z, sizeof(float));
+      memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[3].offset], &bin_intensity, sizeof(float));
+      //point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[0].offset] = coordinate_x;
+      //point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[1].offset] = coordinate_y;
+      //point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[2].offset] = 0;
+      //point_cloud_msg_.data[i * point_cloud_msg_.point_step + point_cloud_msg_.fields[3].offset] =
+    }
+    ROS_INFO("Publishing PointCloud2");
+    point_cloud2_pub_.publish(point_cloud_msg_);
+  }
   void publishLaserScanTest(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     // - TODO: Change msg format. Hack.
     //static float angle_min = math_utils::degToRad(135);
@@ -198,6 +254,7 @@ class ScanLineConverter {
     laser_scan_msg_.intensities.resize(scan_line_msg->bins.size());
     laser_scan_msg_.ranges.resize(1);//(scan_line_msg->bins.size());
     laser_scan_msg_.ranges[9];
+
     for (int i = 0; i < scan_line_msg->bins.size(); i ++)
     {
       laser_scan_msg_.intensities[i] = scan_line_msg->bins[i].intensity;
@@ -311,7 +368,7 @@ class ScanLineConverter {
     point_cloud_msg->header = scan_line_msg->header;
 
     point_cloud_msg->points.reserve(scan_line_msg->bins.size());
-
+    //point_cloud_msg->channels.size();
     sensor_msgs::ChannelFloat32 channel;
     channel.name = "intensity";
     channel.values.reserve(scan_line_msg->bins.size());
