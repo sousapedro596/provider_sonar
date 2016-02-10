@@ -80,8 +80,7 @@ class ScanLineConverter {
   float min_laser_distance_, max_laser_distance_, angular_distance_,
       last_scan_angle_;
   int last_angular_direction_;
-
-  //_LaserScanMsgType laser_scan_msg_;
+  
 
   ScanLineConverter(ros::NodeHandle &nh)
 
@@ -179,6 +178,7 @@ class ScanLineConverter {
     //ROS_INFO("Publishing");
     //publishLaserScanTest(scan_line_msg);
     //publishPointCloud(scan_line_msg);
+    publishPointCloud2(scan_line_msg);
   }
   void publishPointCloud2(const _ScanLineMsgType::ConstPtr &scan_line_msg) {
     sensor_msgs::PointCloud2 point_cloud_msg_;
