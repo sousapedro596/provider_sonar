@@ -1,7 +1,7 @@
 
 // ROS includes
 #include "ros/ros.h"
-#include "provider_sonar_node.h"
+#include "provider_sonar/provider_sonar_node.h"
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "micron_driver");

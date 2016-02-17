@@ -53,25 +53,25 @@
 //! enum for different serial errors that could occur
 enum serialError {
   serialErrSuccess = 0,
-  serialErrOpenNoTty,  // 1
-  serialErrOpenFailed,  // 2
-  serialErrSpeedInvalid,  // 3
-  serialErrFlowInvalid,  // 4
-  serialErrParityInvalid,  // 5
+  serialErrOpenNoTty,        // 1
+  serialErrOpenFailed,       // 2
+  serialErrSpeedInvalid,     // 3
+  serialErrFlowInvalid,      // 4
+  serialErrParityInvalid,    // 5
   serialErrCharsizeInvalid,  // 6
   serialErrStopbitsInvalid,  // 7
-  serialErrOptionInvalid,  // 8
+  serialErrOptionInvalid,    // 8
   serialErrResourceFailure,  // 9
-  serialErrOutput,  // 10
-  serialErrInput,  // 11
-  serialErrTimeout,  // 12
-  serialErrExtended,  // 13
-  serialErrReadFailed,  // 14
-  serialErrReadTimedOut,  // 15
-  serialErrWriteFailed,  // 16
-  serialErrFcntlFailed,  // 17
+  serialErrOutput,           // 10
+  serialErrInput,            // 11
+  serialErrTimeout,          // 12
+  serialErrExtended,         // 13
+  serialErrReadFailed,       // 14
+  serialErrReadTimedOut,     // 15
+  serialErrWriteFailed,      // 16
+  serialErrFcntlFailed,      // 17
   serialErrTcGetAttrFailed,  // 18
-  serialErrTcSetAttrFailed  // 19
+  serialErrTcSetAttrFailed   // 19
 };
 
 //! Interface to a serial port
@@ -228,7 +228,7 @@ class SerialPort {
   int write(const void* buffer, const int nbytes);
 
   //! write a single byte to the port - a simple wrapper around write(const
-  //void* buffer, const int nbytes)
+  // void* buffer, const int nbytes)
   /*! @param character the single byte to write
       @return -1 on failure, 1 on successs.*/
   int write(const unsigned char character);
@@ -261,8 +261,8 @@ class SerialPort {
   bool itsSerialOk;                  //!< Port opened success if true
 
  private:
-  int dev;  // descriptor associated with the device file
-  std::string itsDevName;  // the device name
+  int dev;                  // descriptor associated with the device file
+  std::string itsDevName;   // the device name
   serialError serialErrno;  // error id of the last error
   termios savedState;       // saved state to restore in the destructor
 

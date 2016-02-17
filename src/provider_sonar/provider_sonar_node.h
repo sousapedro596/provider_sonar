@@ -39,6 +39,7 @@
 #include <provider_sonar/sonar_reconfig.h>
 #include <sstream>
 #include "stdint.h"
+#include "sonar_driver.h"
 #include <provider_sonar/Serial.h>
 #include <provider_sonar/sonar_driver.h>
 #include <provider_sonar/math.h>
@@ -55,8 +56,8 @@ class ProviderSonarNode {
   using PtrList = std::vector<ProviderSonarNode::Ptr>;
   using ConstPtrList = std::vector<ProviderSonarNode::ConstPtr>;
 
-  typedef provider_sonar::ScanLine ScanLineMsgType;
-  typedef provider_sonar::IntensityBin IntensityBinMsgType;
+  typedef ScanLine ScanLineMsgType;
+  typedef IntensityBin IntensityBinMsgType;
   typedef float StepType;
   typedef float AngleType;
   typedef std::vector<uint8_t> IntensityBinsRawType;
@@ -77,28 +78,24 @@ class ProviderSonarNode {
   /* This function is a callback associated with the reception of a Scanline
      Message from the Sonar.
      It takes the Sonar scanline, formats it as a Scanline message and publishes
-     it on the corresponding
-     topic. */
+     it on the corresponding topic. */
   void Publish(AngleType scan_angle, StepType bin_distance_step,
                IntensityBinsRawType intensity_bins);
 
   void Simulate();
 
+  // This function queries the parameter server for the needed parameters. If
+  // not found, it uses the default values:
   bool Getparams(ros::NodeHandle &nh);
-
 
  private:
   //============================================================================
   // P R I V A T E   M E M B E R S
 
   ros::NodeHandlePtr nh_;
-
-  // Create publisher for the sonar scanlines
-  ros::Publisher scan_line_pub_;
-
+  ros::Publisher scan_line_pub_;  // Create publisher for the sonar scanlines
   // Create a service server to allow dynamic reconfiguration of the sonar
   ros::ServiceServer reconfigserver;
-
   // Sonar parameters: Will be read from parameter server.
   std::string frame_id_;
   std::string port_;

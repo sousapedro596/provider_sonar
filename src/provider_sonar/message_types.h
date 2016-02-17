@@ -277,8 +277,8 @@ static std::vector<uint8_t> mtSendDataMsg = {
 // ######################################################################
 struct mtHeadDataMsg {
   uint8_t packetSequence;  //!< If this is part of a multi-packet sequence,
-                           //which packet is this?
-  bool isLastInSequence;   //!< Is this the last packet in the sequence?
+  // which packet is this?
+  bool isLastInSequence;  //!< Is this the last packet in the sequence?
   uint8_t txNode;
 
   //! Head Status Data
@@ -286,8 +286,8 @@ struct mtHeadDataMsg {
   bool hdPwrLoss;           //!< Head is in reset condition
   bool motorErr;            //!< Motor has lost sync, re-send parameters.
   bool dataRangeis0to80db;  //!< When in 8-bit adc datamode, data is 0..255 =
-                            //0..80db
-  bool messageAppended;     //!< Message appended after last packet data reply
+  // 0..80db
+  bool messageAppended;  //!< Message appended after last packet data reply
   /*! @}*/
 
   enum sweepCode_t {
@@ -359,10 +359,12 @@ struct mtHeadDataMsg {
   mtHeadDataMsg(Message const& msg) {
     //			if(msg.count == 0)
     //			{
-    //				std::cerr << "Your sonar is sending multi-packet data! This driver
-    //does not support this format. Please "
-    //				"reconfigure your device to send data in single-packet mode." <<
-    //std::endl;
+    //				std::cerr << "Your sonar is sending multi-packet data! This
+    //driver
+    // does not support this format. Please "
+    //				"reconfigure your device to send data in single-packet mode."
+    //<<
+    // std::endl;
     //				return;
     //			}
 

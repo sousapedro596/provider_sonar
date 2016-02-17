@@ -28,6 +28,8 @@
 #include <boost/thread.hpp>
 #include "stdint.h"
 
+namespace provider_sonar {
+
 class SonarDriver {
  public:
   //==========================================================================
@@ -35,37 +37,34 @@ class SonarDriver {
 
   using Ptr = std::shared_ptr<SonarDriver>;
 
-  //! Current state of the incoming protocol FSM
+  // Current state of the incoming protocol FSM
   enum StateType {
-    WaitingForAt = 0,  //!< Waiting for an @ to appear
-    ReadingHeader =
-    1,  //!< The @ sign has been found, now we're reading the header data
-    ReadingData =
-    2,  //!< The header has been read, now we're just reading the data
+    WaitingForAt = 0,  // Waiting for an @ to appear
+    ReadingHeader = 1,  // The @ sign has been found, now we're reading the header data
+    ReadingData = 2  // The header has been read, now we're just reading the data
   };
 
   // Semaphore type
   enum Semaphore {
     red,
-    green,
+    green
   };
 
-  //! States for the protocol state machine
+  // States for the protocol state machine
   enum StateMachineStates {
     waitingforMtAlive_1,
     waitingforMtAlive_2,
     versionData,
     configuring,
     scanning,
-    reset,
+    reset
   };
 
   //==========================================================================
   // P U B L I C   C / D T O R S
 
-  SonarDriver(uint16_t _nBins, float _range, float _VOS,
-              uint8_t _angleStepSize, int _leftLimit, int _rightLimit,
-              bool debugMode = true);
+  SonarDriver(uint16_t _nBins, float _range, float _VOS, uint8_t _angleStepSize,
+              int _leftLimit, int _rightLimit, bool debugMode = true);
 
   ~SonarDriver();
 
@@ -74,7 +73,7 @@ class SonarDriver {
       @param range The desired range (in meters)
       @param VOS The velocity of sound in the current medium
       @param stepAngleSize The angular resolution of each scan */
-  bool Connect(std::string const& devName);
+  bool Connect(std::string const &devName);
 
   //! Disconnect from the Sonar device and kill all of our associated threads
   void Disconnect();
@@ -100,82 +99,59 @@ class SonarDriver {
                          std::vector<uint8_t> /*scanline*/)>);
 
  private:
-  //! This function sets the necessary parameters for the Sonar operation.
+  // This function sets the necessary parameters for the Sonar operation.
   void SetParameters(uint16_t _nBins, float _range, float _VOS,
                      uint8_t _angleStepSize, int _leftLimit, int _rightLimit);
 
-  //! Process a single incoming byte (add it onto itsRawMsg, etc.)
+  // Process a single incoming byte (add it onto itsRawMsg, etc.)
   void ProcessByte(uint8_t byte);
 
-  //! Process an incoming message
+  // Process an incoming message
   void ProcessMessage(tritech::Message msg);
 
-  //! The method being run by itsSerialThread
+  // The method being run by its_serial_thread_
   void SerialThreadMethod();
 
-  //! The method being run by itsProcessingThread
+  // The method being run by its_processing_thread
   void ProcessingThreadMethod();
 
   //============================================================================
   // P R I V A T E   M E M B E R S
 
-  //! A thread that just spins and reads data from the serial port
-  boost::thread itsSerialThread;
+  // A thread that just spins and reads data from the serial port
+  boost::thread its_serial_thread_;
+  // A thread that just spins and interacts with the Sonar
+  boost::thread its_processing_thread_;
 
-  //! A thread that just spins and interacts with the Sonar
-  boost::thread itsProcessingThread;
-
-  //! The current state of the FSM controlling the parsing of the incoming
-  //protocol
-  StateType itsState;
-
-
-  // State Machine Semaphore
-  Semaphore stateMachineSemaphore;
-
-  // Scanning callback routine semaphore
-  Semaphore scanningCallbackSemaphore;
-
-  // The variable controlling the state machine
-  StateMachineStates state;
-
-  //! The current message buffer begin read in
-  std::vector<uint8_t> itsRawMsg;
-
-  //! The current incoming message begin constructed from itsRawMsg
-  tritech::Message itsMsg;
-
-  //! Have we ever heard an mtAlive message from the sonar?
-  bool hasHeardMtAlive;
-
-  //! Have we ever heard an mtVersionData from the sonar?
-  bool hasHeardMtVersionData;
-
-  // Have we received a mtHeadData from the sonar?
-  bool hasHeardMtHeadData;
-
-  // Has the Sonar received it's parameters?
-  bool hasParams;
-
-  //! The actual serial port
-  SerialPort itsSerial;
-
-  //! Are we currently running?
-  bool itsRunning;
-
-  //! Should we be printing debugging information to the console? Warning, this
-  //is very noisy and slow.
-  bool itsDebugMode;
-
-  uint16_t nBins;
-  float range;
-  float VOS;
-  uint8_t angleStepSize;
-  int leftLimit;
-  int rightLimit;
+  // The current state of the FSM controlling the parsing of the incoming
+  // protocol
+  StateType its_state_;
+  Semaphore state_machine_semaphore_;  // State Machine Semaphore
+  Semaphore scanning_callback_semaphore_;  // Scanning callback routine semaphore
+  StateMachineStates state_;  // The variable controlling the state machine
+  // The current message buffer begin read in
+  // the current incoming message begin constructed from itsRawMsg
+  std::vector<uint8_t> its_raw_msg_;
+  tritech::Message its_msg_;
+  bool hasHeardMtAlive;  // Have we ever heard an mtAlive message from the sonar?
+  bool hasHeardMtVersionData;  // Have we ever heard an mtVersionData from the sonar?
+  bool hasHeardMtHeadData;  // Have we received a mtHeadData from the sonar?
+  bool hasParams;  // Has the Sonar received it's parameters?
+  SerialPort serial_;  // The actual serial port
+  bool its_running_;  // Are we currently running?
+  // Should we be printing debugging information to the console? Warning, this
+  // is very noisy and slow.
+  bool its_debug_mode_;
+  uint16_t n_bins_;
+  float range_;
+  float vos_;
+  uint8_t angle_step_size_;
+  int left_limit_;
+  int right_limit_;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
                      std::vector<uint8_t> /*scanline*/)> itsScanLineCallback;
 };
+}
 
 #endif  // TRITECHMICRON_TRITECHMICRON_H
