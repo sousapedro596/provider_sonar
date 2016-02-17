@@ -21,7 +21,7 @@
 #ifndef TRITECHMICRON_MESSAGETYPES_H
 #define TRITECHMICRON_MESSAGETYPES_H
 
-#include <provider_sonar/tritech_micron_driver.h>
+#include <provider_sonar/sonar_driver.h>
 #include <iostream>
 #include "ros/ros.h"
 #include <vector>

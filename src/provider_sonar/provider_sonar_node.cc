@@ -46,9 +46,9 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandle &nh){
   if (!simulate_) {
     scan_line_pub_ = nh.advertise<_ScanLineMsgType>("scan_line", 100);
 
-    driver_ = new TritechMicronDriver(num_bins_, range_, velocity_of_sound_,
-                                      angle_step_size_, leftLimit_,
-                                      rightLimit_, use_debug_mode);
+    driver_ = new SonarDriver(num_bins_, range_, velocity_of_sound_,
+                              angle_step_size_, leftLimit_,
+                              rightLimit_, use_debug_mode);
     reconfigserver = nh.advertiseService("Sonar_Reconfiguration",
                                          &ProviderSonarNode::reconfig, this);
 

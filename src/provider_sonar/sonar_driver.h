@@ -1,6 +1,6 @@
 // ######################################################################
 //
-//      TritechMicronDriver - A protocol parser for Tritech Micron sonars.
+//      SonarDriver - A protocol parser for Tritech Micron sonars.
 //      Copyright (C) 2011  Randolph Voorhies
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 #include <boost/thread.hpp>
 #include "stdint.h"
 
-class TritechMicronDriver {
+class SonarDriver {
  public:
   uint16_t nBins;
   float range;
@@ -37,11 +37,11 @@ class TritechMicronDriver {
   int leftLimit;
   int rightLimit;
 
-  TritechMicronDriver(uint16_t _nBins, float _range, float _VOS,
-                      uint8_t _angleStepSize, int _leftLimit, int _rightLimit,
-                      bool debugMode = true);
+  SonarDriver(uint16_t _nBins, float _range, float _VOS,
+              uint8_t _angleStepSize, int _leftLimit, int _rightLimit,
+              bool debugMode = true);
 
-  ~TritechMicronDriver();
+  ~SonarDriver();
 
   //! Connect to a Sonar device, and configure it
   /*! @param nBins The desired number of bins in each scanline

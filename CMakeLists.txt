@@ -83,7 +83,7 @@ set( TARGET_NAME provider_sonar_node )
 add_executable( ${TARGET_NAME}
     ${provider_sonar_SRC_DIR}/main.cpp
     ${provider_sonar_SRC_DIR}/Serial.cpp
-    ${provider_sonar_SRC_DIR}/tritech_micron_driver.cpp
+    ${provider_sonar_SRC_DIR}/sonar_driver.cc
     ${provider_sonar_SRC_DIR}/provider_sonar_node.cc )
 target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )

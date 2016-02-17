@@ -1,6 +1,6 @@
 // ######################################################################
 //
-//      TritechMicronDriver - A protocol parser for Tritech Micron sonars.
+//      SonarDriver - A protocol parser for Tritech Micron sonars.
 //      Copyright (C) 2011  Randolph Voorhies
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 //
 // ######################################################################
 
-#include <provider_sonar/tritech_micron_driver.h>
+#include "sonar_driver.h"
 #include <provider_sonar/message_types.h>
 #include <iostream>
 #include <algorithm>
@@ -28,10 +28,10 @@
 using namespace tritech;
 
 // ######################################################################
-TritechMicronDriver::TritechMicronDriver(uint16_t _nBins, float _range,
-                                         float _VOS, uint8_t _angleStepSize,
-                                         int _leftLimit, int _rightLimit,
-                                         bool debugMode)
+SonarDriver::SonarDriver(uint16_t _nBins, float _range,
+                         float _VOS, uint8_t _angleStepSize,
+                         int _leftLimit, int _rightLimit,
+                         bool debugMode)
     : hasHeardMtAlive(false),
       hasHeardMtVersionData(false),
       hasHeardMtHeadData(false),
@@ -43,10 +43,10 @@ TritechMicronDriver::TritechMicronDriver(uint16_t _nBins, float _range,
 }
 
 // ######################################################################
-TritechMicronDriver::~TritechMicronDriver() { disconnect(); }
+SonarDriver::~SonarDriver() { disconnect(); }
 
 // ######################################################################
-void TritechMicronDriver::disconnect() {
+void SonarDriver::disconnect() {
   std::cout << "Disconnecting" << std::endl;
   itsRunning = false;
   if (itsSerialThread.joinable()) {
@@ -63,9 +63,9 @@ void TritechMicronDriver::disconnect() {
 
 // ######################################################################
 
-void TritechMicronDriver::setParameters(uint16_t _nBins, float _range,
-                                        float _VOS, uint8_t _angleStepSize,
-                                        int _leftLimit, int _rightLimit) {
+void SonarDriver::setParameters(uint16_t _nBins, float _range,
+                                float _VOS, uint8_t _angleStepSize,
+                                int _leftLimit, int _rightLimit) {
   nBins = _nBins;
   range = _range;
   VOS = _VOS;
@@ -75,7 +75,7 @@ void TritechMicronDriver::setParameters(uint16_t _nBins, float _range,
 }
 
 // ######################################################################
-bool TritechMicronDriver::connect(std::string const& devName) {
+bool SonarDriver::connect(std::string const& devName) {
   if (itsDebugMode) std::cout << "Connecting...";
 
   itsSerial.flush();
@@ -93,24 +93,24 @@ bool TritechMicronDriver::connect(std::string const& devName) {
 
   itsRunning = true;
   itsSerialThread =
-      boost::thread(std::bind(&TritechMicronDriver::serialThreadMethod, this));
+      boost::thread(std::bind(&SonarDriver::serialThreadMethod, this));
 
   itsProcessingThread = boost::thread(
-      std::bind(&TritechMicronDriver::processingThreadMethod, this));
+      std::bind(&SonarDriver::processingThreadMethod, this));
 
   return true;
 }
 
 // ######################################################################
-void TritechMicronDriver::configure() {
+void SonarDriver::configure() {
   mtHeadCommandMsg headCommandMsg(nBins, range, VOS, angleStepSize, leftLimit,
                                   rightLimit);
   itsSerial.writeVector(headCommandMsg.construct());
 }
 
-void TritechMicronDriver::reconfigure(uint16_t _nBins, float _range, float _VOS,
-                                      uint8_t _angleStepSize, int _leftLimit,
-                                      int _rightLimit) {
+void SonarDriver::reconfigure(uint16_t _nBins, float _range, float _VOS,
+                              uint8_t _angleStepSize, int _leftLimit,
+                              int _rightLimit) {
   // Load the new values
   setParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
   // Set the semaphore to red in order not to access the state variable at the
@@ -124,13 +124,13 @@ void TritechMicronDriver::reconfigure(uint16_t _nBins, float _range, float _VOS,
 }
 
 // ######################################################################
-void TritechMicronDriver::registerScanLineCallback(
+void SonarDriver::registerScanLineCallback(
     std::function<void(float, float, std::vector<uint8_t>)> callback) {
   itsScanLineCallback = callback;
 }
 
 // ######################################################################
-void TritechMicronDriver::serialThreadMethod() {
+void SonarDriver::serialThreadMethod() {
   while (itsRunning == true) {
     std::vector<uint8_t> bytes = itsSerial.read(2048);
     if (bytes.size() > 0) {
@@ -146,7 +146,7 @@ void TritechMicronDriver::serialThreadMethod() {
 
 // ######################################################################
 
-void TritechMicronDriver::processingThreadMethod() {
+void SonarDriver::processingThreadMethod() {
   int waitedPeriods = 0;
   Semaphore firstSemaphore = green;
 
@@ -238,14 +238,14 @@ void TritechMicronDriver::processingThreadMethod() {
 }
 
 // ######################################################################
-void TritechMicronDriver::resetMessage() {
+void SonarDriver::resetMessage() {
   itsMsg = Message();
   itsState = WaitingForAt;
   itsRawMsg.clear();
 }
 
 // ######################################################################
-void TritechMicronDriver::processByte(uint8_t byte) {
+void SonarDriver::processByte(uint8_t byte) {
   // if(itsDebugMode) std::cout << std::endl << "Received Byte: " << std::hex <<
   // int(byte) << std::dec ;
   itsRawMsg.push_back(byte);
@@ -324,7 +324,7 @@ void TritechMicronDriver::processByte(uint8_t byte) {
 }
 
 // ######################################################################
-void TritechMicronDriver::processMessage(tritech::Message msg) {
+void SonarDriver::processMessage(tritech::Message msg) {
   if (msg.type == mtVersionData) {
     mtVersionDataMsg parsedMsg(msg);
     hasHeardMtVersionData = true;

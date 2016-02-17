@@ -47,7 +47,7 @@
 
 // Code includes
 #include <provider_sonar/Serial.h>
-#include <provider_sonar/tritech_micron_driver.h>
+#include <provider_sonar/sonar_driver.h>
 #include <provider_sonar/math.h>
 
 namespace provider_sonar {
@@ -112,7 +112,7 @@ class ProviderSonarNode {
   int rightLimit_;
   bool use_debug_mode;
   bool simulate_;
-  TritechMicronDriver *driver_;
+  SonarDriver *driver_;
 
   // Sonar simulation parameters
   int simulate_num_bins_;
