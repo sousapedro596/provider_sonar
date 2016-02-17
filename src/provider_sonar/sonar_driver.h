@@ -30,12 +30,38 @@
 
 class SonarDriver {
  public:
-  uint16_t nBins;
-  float range;
-  float VOS;
-  uint8_t angleStepSize;
-  int leftLimit;
-  int rightLimit;
+  //==========================================================================
+  // T Y P E D E F   A N D   E N U M
+
+  using Ptr = std::shared_ptr<SonarDriver>;
+
+  //! Current state of the incoming protocol FSM
+  enum StateType {
+    WaitingForAt = 0,  //!< Waiting for an @ to appear
+    ReadingHeader =
+    1,  //!< The @ sign has been found, now we're reading the header data
+    ReadingData =
+    2,  //!< The header has been read, now we're just reading the data
+  };
+
+  // Semaphore type
+  enum Semaphore {
+    red,
+    green,
+  };
+
+  //! States for the protocol state machine
+  enum StateMachineStates {
+    waitingforMtAlive_1,
+    waitingforMtAlive_2,
+    versionData,
+    configuring,
+    scanning,
+    reset,
+  };
+
+  //==========================================================================
+  // P U B L I C   C / D T O R S
 
   SonarDriver(uint16_t _nBins, float _range, float _VOS,
               uint8_t _angleStepSize, int _leftLimit, int _rightLimit,
@@ -48,19 +74,19 @@ class SonarDriver {
       @param range The desired range (in meters)
       @param VOS The velocity of sound in the current medium
       @param stepAngleSize The angular resolution of each scan */
-  bool connect(std::string const& devName);
+  bool Connect(std::string const& devName);
 
   //! Disconnect from the Sonar device and kill all of our associated threads
-  void disconnect();
+  void Disconnect();
 
   //! Configure the sonar
-  void configure();
+  void Configure();
 
-  void resetMessage();
+  void ResetMessage();
 
   // This function allows the user to reconfigure the sonar once it is running
   // without restarting the driver
-  void reconfigure(uint16_t _nBins, float _range, float _VOS,
+  void Reconfigure(uint16_t _nBins, float _range, float _VOS,
                    uint8_t _angleStepSize, int _leftLimit, int _rightLimit);
 
   //! Get access to the scan lines that have been read by the sonar.
@@ -69,26 +95,29 @@ class SonarDriver {
       infrequently as possible */
   std::map<float, std::vector<uint8_t>> scanLines();
 
-  void registerScanLineCallback(
+  void RegisterScanLineCallback(
       std::function<void(float /*angle*/, float /*meters per bin*/,
                          std::vector<uint8_t> /*scanline*/)>);
 
  private:
   //! This function sets the necessary parameters for the Sonar operation.
-  void setParameters(uint16_t _nBins, float _range, float _VOS,
+  void SetParameters(uint16_t _nBins, float _range, float _VOS,
                      uint8_t _angleStepSize, int _leftLimit, int _rightLimit);
 
   //! Process a single incoming byte (add it onto itsRawMsg, etc.)
-  void processByte(uint8_t byte);
+  void ProcessByte(uint8_t byte);
 
   //! Process an incoming message
-  void processMessage(tritech::Message msg);
+  void ProcessMessage(tritech::Message msg);
 
   //! The method being run by itsSerialThread
-  void serialThreadMethod();
+  void SerialThreadMethod();
 
   //! The method being run by itsProcessingThread
-  void processingThreadMethod();
+  void ProcessingThreadMethod();
+
+  //============================================================================
+  // P R I V A T E   M E M B E R S
 
   //! A thread that just spins and reads data from the serial port
   boost::thread itsSerialThread;
@@ -96,24 +125,10 @@ class SonarDriver {
   //! A thread that just spins and interacts with the Sonar
   boost::thread itsProcessingThread;
 
-  //! Current state of the incoming protocol FSM
-  enum StateType {
-    WaitingForAt = 0,  //!< Waiting for an @ to appear
-    ReadingHeader =
-        1,  //!< The @ sign has been found, now we're reading the header data
-    ReadingData =
-        2,  //!< The header has been read, now we're just reading the data
-  };
-
   //! The current state of the FSM controlling the parsing of the incoming
   //protocol
   StateType itsState;
 
-  // Semaphore type
-  enum Semaphore {
-    red,
-    green,
-  };
 
   // State Machine Semaphore
   Semaphore stateMachineSemaphore;
@@ -121,18 +136,8 @@ class SonarDriver {
   // Scanning callback routine semaphore
   Semaphore scanningCallbackSemaphore;
 
-  //! States for the protocol state machine
-  enum StateMachine_states {
-    waitingforMtAlive_1,
-    waitingforMtAlive_2,
-    versionData,
-    configuring,
-    scanning,
-    reset,
-  };
-
   // The variable controlling the state machine
-  StateMachine_states state;
+  StateMachineStates state;
 
   //! The current message buffer begin read in
   std::vector<uint8_t> itsRawMsg;
@@ -161,6 +166,13 @@ class SonarDriver {
   //! Should we be printing debugging information to the console? Warning, this
   //is very noisy and slow.
   bool itsDebugMode;
+
+  uint16_t nBins;
+  float range;
+  float VOS;
+  uint8_t angleStepSize;
+  int leftLimit;
+  int rightLimit;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
                      std::vector<uint8_t> /*scanline*/)> itsScanLineCallback;

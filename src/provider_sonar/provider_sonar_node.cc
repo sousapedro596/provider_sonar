@@ -41,25 +41,25 @@ namespace provider_sonar {
 //
 // Constructor
 ProviderSonarNode::ProviderSonarNode(ros::NodeHandle &nh){
-  getparams(nh);
+  Getparams(nh);
 
   if (!simulate_) {
-    scan_line_pub_ = nh.advertise<_ScanLineMsgType>("scan_line", 100);
+    scan_line_pub_ = nh.advertise<ScanLineMsgType>("scan_line", 100);
 
     driver_ = new SonarDriver(num_bins_, range_, velocity_of_sound_,
                               angle_step_size_, leftLimit_,
                               rightLimit_, use_debug_mode);
     reconfigserver = nh.advertiseService("Sonar_Reconfiguration",
-                                         &ProviderSonarNode::reconfig, this);
+                                         &ProviderSonarNode::Reconfig, this);
 
-    driver_->registerScanLineCallback(
-        std::bind(&ProviderSonarNode::publish, this, std::placeholders::_1,
+    driver_->RegisterScanLineCallback(
+        std::bind(&ProviderSonarNode::Publish, this, std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3));
 
     uint8_t angle_step_size_byte =
         std::max(1, std::min(255, angle_step_size_));
 
-    if (!driver_->connect(port_.c_str())) {
+    if (!driver_->Connect(port_.c_str())) {
       ROS_ERROR("Could not connect to device; simulating instead.");
       simulate_ = true;
     }
@@ -70,14 +70,19 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandle &nh){
 ProviderSonarNode::~ProviderSonarNode() {
   if (driver_) {
     ROS_INFO("Disconnecting Sonar!");
-    driver_->disconnect();
+    driver_->Disconnect();
     delete driver_;
   }
 }
 
-bool ProviderSonarNode::reconfig(provider_sonar::sonar_reconfig::Request &req,
+//==============================================================================
+// M E T H O D   S E C T I O N
+
+//------------------------------------------------------------------------------
+//
+bool ProviderSonarNode::Reconfig(provider_sonar::sonar_reconfig::Request &req,
                                  provider_sonar::sonar_reconfig::Response &resp) {
-  driver_->reconfigure(req.nbins, req.range, req.vos, req.angle_step_size,
+  driver_->Reconfigure(req.nbins, req.range, req.vos, req.angle_step_size,
                        req.leftLimit, req.rightLimit);
 
   return true;
@@ -88,9 +93,11 @@ bool ProviderSonarNode::reconfig(provider_sonar::sonar_reconfig::Request &req,
    It takes the Sonar scanline, formats it as a Scanline message and publishes
    it on the corresponding
    topic. */
-void ProviderSonarNode::publish(_AngleType scan_angle, _StepType bin_distance_step,
-                                _IntensityBinsRawType intensity_bins) {
-  _ScanLineMsgType::Ptr scan_line_msg(new _ScanLineMsgType);
+//------------------------------------------------------------------------------
+//
+void ProviderSonarNode::Publish(AngleType scan_angle, StepType bin_distance_step,
+                                IntensityBinsRawType intensity_bins) {
+  ScanLineMsgType::Ptr scan_line_msg(new ScanLineMsgType);
   scan_line_msg->header.stamp = ros::Time::now();
   scan_line_msg->header.frame_id = frame_id_;
   scan_line_msg->angle = scan_angle;
@@ -99,7 +106,7 @@ void ProviderSonarNode::publish(_AngleType scan_angle, _StepType bin_distance_st
   scan_line_msg->bins.reserve(intensity_bins.size());
 
   for (int i = 0; i < intensity_bins.size(); ++i) {
-    _IntensityBinMsgType bin;
+    IntensityBinMsgType bin;
     bin.distance = bin_distance_step * (i + 1);
     bin.intensity = intensity_bins[i];
     scan_line_msg->bins.push_back(bin);
@@ -110,7 +117,9 @@ void ProviderSonarNode::publish(_AngleType scan_angle, _StepType bin_distance_st
 
 // This function queries the parameter server for the needed parameters. If
 // not found, it uses the default values:
-bool ProviderSonarNode::getparams(ros::NodeHandle &nh) {
+//------------------------------------------------------------------------------
+//
+bool ProviderSonarNode::Getparams(ros::NodeHandle &nh) {
   if (nh.hasParam("/micron_driver/frame_id_"))
     nh.getParam("/micron_driver/frame_id_", frame_id_);
   else {
@@ -281,14 +290,16 @@ bool ProviderSonarNode::getparams(ros::NodeHandle &nh) {
   }
 }
 
-void ProviderSonarNode::simulate() {
+//------------------------------------------------------------------------------
+//
+void ProviderSonarNode::Simulate() {
   if (!simulate_) return;
 
   // This code simulates the sonar.
   static ros::Time last_time_;
   ros::Time now = ros::Time::now();
 
-  _IntensityBinsRawType intensity_bins(simulate_num_bins_);
+  IntensityBinsRawType intensity_bins(simulate_num_bins_);
   for (int i = 0; i < simulate_num_bins_; ++i) {
     intensity_bins[i] =
         simulate_intensity *
@@ -297,7 +308,7 @@ void ProviderSonarNode::simulate() {
                 simulate_intensity_variance);
   }
 
-  publish(scan_angle, simulate_bin_distance_step_, intensity_bins);
+  Publish(scan_angle, simulate_bin_distance_step_, intensity_bins);
 
   if (simulate_use_manual_angle)
     scan_angle = simulate_manual_angle;

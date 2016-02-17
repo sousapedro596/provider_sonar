@@ -34,18 +34,11 @@
 #define PROVIDER_SONAR_SONAR_NODE_H
 
 #include <ros/ros.h>
-// Messages includes
 #include "std_msgs/String.h"
 #include <provider_sonar/ScanLine.h>
-
-// Service includes
 #include <provider_sonar/sonar_reconfig.h>
-
-// C++ includes
 #include <sstream>
 #include "stdint.h"
-
-// Code includes
 #include <provider_sonar/Serial.h>
 #include <provider_sonar/sonar_driver.h>
 #include <provider_sonar/math.h>
@@ -62,11 +55,11 @@ class ProviderSonarNode {
   using PtrList = std::vector<ProviderSonarNode::Ptr>;
   using ConstPtrList = std::vector<ProviderSonarNode::ConstPtr>;
 
-  typedef provider_sonar::ScanLine _ScanLineMsgType;
-  typedef provider_sonar::IntensityBin _IntensityBinMsgType;
-  typedef float _StepType;
-  typedef float _AngleType;
-  typedef std::vector<uint8_t> _IntensityBinsRawType;
+  typedef provider_sonar::ScanLine ScanLineMsgType;
+  typedef provider_sonar::IntensityBin IntensityBinMsgType;
+  typedef float StepType;
+  typedef float AngleType;
+  typedef std::vector<uint8_t> IntensityBinsRawType;
 
   //==========================================================================
   // P U B L I C   C / D T O R S
@@ -78,7 +71,7 @@ class ProviderSonarNode {
   //==========================================================================
   // P U B L I C   M E T H O D S
 
-  bool reconfig(provider_sonar::sonar_reconfig::Request &req,
+  bool Reconfig(provider_sonar::sonar_reconfig::Request &req,
                 provider_sonar::sonar_reconfig::Response &resp);
 
   /* This function is a callback associated with the reception of a Scanline
@@ -86,14 +79,19 @@ class ProviderSonarNode {
      It takes the Sonar scanline, formats it as a Scanline message and publishes
      it on the corresponding
      topic. */
-  void publish(_AngleType scan_angle, _StepType bin_distance_step,
-               _IntensityBinsRawType intensity_bins);
+  void Publish(AngleType scan_angle, StepType bin_distance_step,
+               IntensityBinsRawType intensity_bins);
 
-  void simulate();
+  void Simulate();
 
-  void spin();
+  bool Getparams(ros::NodeHandle &nh);
 
-  bool getparams(ros::NodeHandle &nh);
+
+ private:
+  //============================================================================
+  // P R I V A T E   M E M B E R S
+
+  ros::NodeHandlePtr nh_;
 
   // Create publisher for the sonar scanlines
   ros::Publisher scan_line_pub_;
@@ -124,13 +122,6 @@ class ProviderSonarNode {
   double simulate_manual_angle;
   double simulate_scan_angle_velocity;
   float scan_angle;
-
- private:
-  //============================================================================
-  // P R I V A T E   M E M B E R S
-
-  ros::NodeHandlePtr nh_;
-
 };
 
 }  // namespace provider_sonar

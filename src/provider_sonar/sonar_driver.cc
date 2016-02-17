@@ -27,7 +27,11 @@
 
 using namespace tritech;
 
-// ######################################################################
+//==============================================================================
+// C / D T O R S   S E C T I O N
+
+//------------------------------------------------------------------------------
+//
 SonarDriver::SonarDriver(uint16_t _nBins, float _range,
                          float _VOS, uint8_t _angleStepSize,
                          int _leftLimit, int _rightLimit,
@@ -38,15 +42,20 @@ SonarDriver::SonarDriver(uint16_t _nBins, float _range,
       itsDebugMode(debugMode),
       stateMachineSemaphore(green),
       state(waitingforMtAlive_1) {
-  resetMessage();
-  setParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
+  ResetMessage();
+  SetParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
 }
 
-// ######################################################################
-SonarDriver::~SonarDriver() { disconnect(); }
+//------------------------------------------------------------------------------
+//
+SonarDriver::~SonarDriver() { Disconnect(); }
 
-// ######################################################################
-void SonarDriver::disconnect() {
+//==============================================================================
+// M E T H O D   S E C T I O N
+
+//------------------------------------------------------------------------------
+//
+void SonarDriver::Disconnect() {
   std::cout << "Disconnecting" << std::endl;
   itsRunning = false;
   if (itsSerialThread.joinable()) {
@@ -61,9 +70,9 @@ void SonarDriver::disconnect() {
   std::cout << "Disconnected" << std::endl;
 }
 
-// ######################################################################
-
-void SonarDriver::setParameters(uint16_t _nBins, float _range,
+//------------------------------------------------------------------------------
+//
+void SonarDriver::SetParameters(uint16_t _nBins, float _range,
                                 float _VOS, uint8_t _angleStepSize,
                                 int _leftLimit, int _rightLimit) {
   nBins = _nBins;
@@ -74,8 +83,9 @@ void SonarDriver::setParameters(uint16_t _nBins, float _range,
   rightLimit = _rightLimit;
 }
 
-// ######################################################################
-bool SonarDriver::connect(std::string const& devName) {
+//------------------------------------------------------------------------------
+//
+bool SonarDriver::Connect(std::string const& devName) {
   if (itsDebugMode) std::cout << "Connecting...";
 
   itsSerial.flush();
@@ -93,26 +103,27 @@ bool SonarDriver::connect(std::string const& devName) {
 
   itsRunning = true;
   itsSerialThread =
-      boost::thread(std::bind(&SonarDriver::serialThreadMethod, this));
+      boost::thread(std::bind(&SonarDriver::SerialThreadMethod, this));
 
   itsProcessingThread = boost::thread(
-      std::bind(&SonarDriver::processingThreadMethod, this));
+      std::bind(&SonarDriver::ProcessingThreadMethod, this));
 
   return true;
 }
 
-// ######################################################################
-void SonarDriver::configure() {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::Configure() {
   mtHeadCommandMsg headCommandMsg(nBins, range, VOS, angleStepSize, leftLimit,
                                   rightLimit);
   itsSerial.writeVector(headCommandMsg.construct());
 }
 
-void SonarDriver::reconfigure(uint16_t _nBins, float _range, float _VOS,
+void SonarDriver::Reconfigure(uint16_t _nBins, float _range, float _VOS,
                               uint8_t _angleStepSize, int _leftLimit,
                               int _rightLimit) {
   // Load the new values
-  setParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
+  SetParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   stateMachineSemaphore = red;
@@ -123,18 +134,20 @@ void SonarDriver::reconfigure(uint16_t _nBins, float _range, float _VOS,
   stateMachineSemaphore = green;
 }
 
-// ######################################################################
-void SonarDriver::registerScanLineCallback(
+//------------------------------------------------------------------------------
+//
+void SonarDriver::RegisterScanLineCallback(
     std::function<void(float, float, std::vector<uint8_t>)> callback) {
   itsScanLineCallback = callback;
 }
 
-// ######################################################################
-void SonarDriver::serialThreadMethod() {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::SerialThreadMethod() {
   while (itsRunning == true) {
     std::vector<uint8_t> bytes = itsSerial.read(2048);
     if (bytes.size() > 0) {
-      for (size_t i = 0; i < bytes.size(); ++i) processByte(bytes[i]);
+      for (size_t i = 0; i < bytes.size(); ++i) ProcessByte(bytes[i]);
       // std::cout << " Finished processing read Vector";
     } else {
       usleep(100000);
@@ -144,9 +157,9 @@ void SonarDriver::serialThreadMethod() {
   std::cout << "serialThreadMethod Finished" << std::endl;
 }
 
-// ######################################################################
-
-void SonarDriver::processingThreadMethod() {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::ProcessingThreadMethod() {
   int waitedPeriods = 0;
   Semaphore firstSemaphore = green;
 
@@ -190,7 +203,7 @@ void SonarDriver::processingThreadMethod() {
           if (itsDebugMode)
             std::cout << "----------Configuring Sonar----Case 4------"
                       << std::endl;
-          configure();
+          Configure();
           if (itsDebugMode) std::cout << "Changing to State 3" << std::endl;
           sleep(5);
           state = waitingforMtAlive_2;
@@ -237,15 +250,17 @@ void SonarDriver::processingThreadMethod() {
   std::cout << "processingThreadMethod Finished" << std::endl;
 }
 
-// ######################################################################
-void SonarDriver::resetMessage() {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::ResetMessage() {
   itsMsg = Message();
   itsState = WaitingForAt;
   itsRawMsg.clear();
 }
 
-// ######################################################################
-void SonarDriver::processByte(uint8_t byte) {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::ProcessByte(uint8_t byte) {
   // if(itsDebugMode) std::cout << std::endl << "Received Byte: " << std::hex <<
   // int(byte) << std::dec ;
   itsRawMsg.push_back(byte);
@@ -279,7 +294,7 @@ void SonarDriver::processByte(uint8_t byte) {
       itsMsg.binLength |= uint16_t(byte) << 8;
       if (itsMsg.binLength > 1000) {
         if (itsDebugMode) std::cout << " Message length too big!" << std::endl;
-        resetMessage();
+        ResetMessage();
       }
       return;
     }
@@ -302,7 +317,7 @@ void SonarDriver::processByte(uint8_t byte) {
     }
 
     std::cerr << "Parsing error! " << __FILE__ << ":" << __LINE__ << std::endl;
-    resetMessage();
+    ResetMessage();
     return;
   }
 
@@ -312,19 +327,20 @@ void SonarDriver::processByte(uint8_t byte) {
     if (uint16_t(itsMsg.binLength - (itsRawMsg.size() - 7)) == 0) {
       if (byte == 0x0A) {
         itsMsg.data = itsRawMsg;
-        processMessage(itsMsg);
-        resetMessage();
+        ProcessMessage(itsMsg);
+        ResetMessage();
       } else {
         if (itsDebugMode) std::cout << " Message finished, but no LF detected!";
-        resetMessage();
+        ResetMessage();
         return;
       }
     }
   }
 }
 
-// ######################################################################
-void SonarDriver::processMessage(tritech::Message msg) {
+//------------------------------------------------------------------------------
+//
+void SonarDriver::ProcessMessage(tritech::Message msg) {
   if (msg.type == mtVersionData) {
     mtVersionDataMsg parsedMsg(msg);
     hasHeardMtVersionData = true;
