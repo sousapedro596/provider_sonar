@@ -34,15 +34,15 @@
  *
  *******************************************************************************/
 
-#include <provider_sonar/scan_line_converter.h>
+#include "scanline_converter.h"
 #include "ros/ros.h"
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "scan_line_converter");
+  ros::init(argc, argv, "scanline_converter");
 
   ros::NodeHandle nh("~");
 
-  ScanLineConverter scan_line_converter(nh);
+  provider_sonar::ScanLineConverter scanline_converter(nh);
   ros::spin();
 
   return 0;
