@@ -32,13 +32,16 @@
 
 namespace provider_sonar {
 
+//==============================================================================
+// C / D T O R S   S E C T I O N
+
+//------------------------------------------------------------------------------
+//
 ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
   // Subscribers
   scan_line_sub_ = nh.subscribe("/micron_driver/scan_line", 1,
                                 &ScanLineConverter::scanLineCB, this);
   // Publishers
-  laser_scan_pub_ = nh.advertise<LaserScanMsgType>("laser_scan", 100);
-  point_cloud_pub_ = nh.advertise<PointCloudMsgType>("point_cloud", 100);
   point_cloud2_pub_ =
       nh.advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
@@ -50,6 +53,11 @@ ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
   clearLaserStats();
 }
 
+//==============================================================================
+// M E T H O D   S E C T I O N
+
+//------------------------------------------------------------------------------
+//
 bool ScanLineConverter::reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
                                  provider_sonar::scanline_parser_reconfig::Response &resp) {
   min_laser_intensity_threshold = req.min_laser_intensity_threshold;
@@ -64,6 +72,8 @@ bool ScanLineConverter::reconfig(provider_sonar::scanline_parser_reconfig::Reque
   return true;
 }
 
+//------------------------------------------------------------------------------
+//
 bool ScanLineConverter::getparams(ros::NodeHandle &nh) {
   if (nh.hasParam("/scan_line_parser/use_point_cloud_threshold"))
     nh.getParam("/scan_line_parser/use_point_cloud_threshold",
@@ -111,6 +121,8 @@ bool ScanLineConverter::getparams(ros::NodeHandle &nh) {
   }
 }
 
+//------------------------------------------------------------------------------
+//
 void ScanLineConverter::clearLaserStats() {
   // laser_scan_msg_.ranges.clear();
   // laser_scan_msg_.intensities.clear();
@@ -121,6 +133,8 @@ void ScanLineConverter::clearLaserStats() {
   last_angular_direction_ = 0;
 }
 
+//------------------------------------------------------------------------------
+//
 // Callback when a scanline is received
 void ScanLineConverter::scanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg) {
   // publishLaserScan(scan_line_msg);
@@ -129,6 +143,9 @@ void ScanLineConverter::scanLineCB(const ScanLineMsgType::ConstPtr &scan_line_ms
   // publishPointCloud(scan_line_msg);
   publishPointCloud2(scan_line_msg);
 }
+
+//------------------------------------------------------------------------------
+//
 void ScanLineConverter::publishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg) {
   sensor_msgs::PointCloud2 point_cloud_msg_;
   // - Copy ROS header
@@ -196,116 +213,9 @@ void ScanLineConverter::publishPointCloud2(const ScanLineMsgType::ConstPtr &scan
   ROS_INFO("Publishing PointCloud2");
   point_cloud2_pub_.publish(point_cloud_msg_);
 }
-void ScanLineConverter::publishLaserScanTest(const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  // - TODO: Change msg format. Hack.
-  // static float angle_min = math_utils::degToRad(135);
-  // static float angle_max = math_utils::degToRad(225);
-  // static float angle_increment = math_utils::degToRad(0.9);
-  LaserScanMsgType laser_scan_msg_;
-  // ROS_INFO("Publishing laserscan");
 
-  laser_scan_msg_.range_min = 0;
-  laser_scan_msg_.range_max = 9;
-  laser_scan_msg_.angle_min =
-      (135 / 360 * 2 * 3.1416);  // 2.35619;//angle_min;
-  laser_scan_msg_.angle_max =
-      (135 / 360 * 2 * 3.1416);  //(225/360*2*3.1416);//3
-  // .92699;//angle_max;
-  laser_scan_msg_.angle_increment = 0;  //(0.9/360*2*3.1416);//0.015708;
-  // angle_increment;
-  // Range * 2 / Sound_velocity_water
-  laser_scan_msg_.scan_time = 9.0 * 2.0 / 1500.0;
-  // -
-  laser_scan_msg_.header = scan_line_msg->header;
-  laser_scan_msg_.intensities.resize(scan_line_msg->bins.size());
-  laser_scan_msg_.ranges.resize(1);  //(scan_line_msg->bins.size());
-  laser_scan_msg_.ranges[9];
-
-  for (int i = 0; i < scan_line_msg->bins.size(); i++) {
-    laser_scan_msg_.intensities[i] = scan_line_msg->bins[i].intensity;
-    // laser_scan_msg_.ranges[i] = (float(i)/9);//scan_line_msg->bins[i]
-    // .distance;
-  }
-  laser_scan_pub_.publish(
-      laser_scan_msg_);  // _LaserScanMsgType::Ptr(new
-  // _LaserScanMsgType(laser_scan_msg_))
-  clearLaserStats();
-}
-void ScanLineConverter::publishLaserScan(const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  IntensityBinMsgType bin = getThresholdedScanLine(scan_line_msg);
-  LaserScanMsgType laser_scan_msg_;
-  if (laser_scan_msg_.ranges.size() == 0) {
-    laser_scan_msg_.angle_min = atlas::DegToRad(scan_line_msg->angle);
-    laser_scan_msg_.header = scan_line_msg->header;
-    last_scan_angle_ = scan_line_msg->angle;
-    last_angular_direction_ = 0;
-  }
-
-  // 170 -> -170 = 20
-  // -170 -> 170 = -20
-
-  float angular_distance_inc;
-
-  if (last_scan_angle_ > 90 && scan_line_msg->angle < -90)
-    angular_distance_inc =
-        (180 - last_scan_angle_) + (scan_line_msg->angle + 180);
-  else if (last_scan_angle_ < -90 && scan_line_msg->angle > 90)
-    angular_distance_inc =
-        (-180 - last_scan_angle_) + (scan_line_msg->angle - 180);
-  else
-    angular_distance_inc = scan_line_msg->angle - last_scan_angle_;
-
-  int angular_direction =
-      angular_distance_inc > 0 ? 1 : angular_distance_inc < 0 ? -1 : 0;
-
-  angular_distance_ += angular_distance_inc;
-
-  ROS_INFO("%f %f %f %f %d\n", laser_scan_msg_.angle_min,
-           scan_line_msg->angle, last_scan_angle_, angular_distance_,
-           angular_direction);
-
-  last_scan_angle_ = scan_line_msg->angle;
-
-  laser_scan_msg_.intensities.push_back(bin.intensity / 255.0);
-  laser_scan_msg_.ranges.push_back(bin.distance);
-
-  if (scan_line_msg->bins.front().distance < min_laser_distance_)
-    min_laser_distance_ = scan_line_msg->bins.front().distance;
-  if (scan_line_msg->bins.back().distance > max_laser_distance_)
-    max_laser_distance_ = scan_line_msg->bins.back().distance;
-
-  if (fabs(angular_distance_) >= 300 ||
-      (angular_direction != last_angular_direction_ &&
-          angular_direction != 0 && last_angular_direction_ != 0)) {
-    // gather statistics
-    laser_scan_msg_.angle_max = atlas::DegToRad(scan_line_msg->angle);
-    laser_scan_msg_.angle_increment =
-        laser_scan_msg_.ranges.size() > 1
-        ? atlas::DegToRad(angular_distance_ /
-            (laser_scan_msg_.ranges.size() - 1))
-        : 0;
-    laser_scan_msg_.range_min = min_laser_distance_;
-    laser_scan_msg_.range_max = max_laser_distance_;
-
-    laser_scan_msg_.scan_time =
-        (scan_line_msg->header.stamp - laser_scan_msg_.header.stamp).toSec();
-    // laser_scan_msg_.header.stamp = ros::Time::now() - (
-    // scan_line_msg->header.stamp - laser_scan_msg_.header.stamp );
-    laser_scan_msg_.time_increment =
-        laser_scan_msg_.ranges.size() > 1
-        ? laser_scan_msg_.scan_time / (laser_scan_msg_.ranges.size() - 1)
-        : 0;
-
-    // publish
-    if (laser_scan_msg_.ranges.size() > 0)
-      laser_scan_pub_.publish(
-          LaserScanMsgType::Ptr(new LaserScanMsgType(laser_scan_msg_)));
-    clearLaserStats();
-  }
-
-  if (angular_direction != 0) last_angular_direction_ = angular_direction;
-}
-
+//------------------------------------------------------------------------------
+//
 // This function loops through the received scanline until it finds a
 // intensity greater then the defined threshold.
 // It then returns the intensity and the corresponding distance
@@ -330,39 +240,4 @@ ScanLineConverter::IntensityBinMsgType ScanLineConverter::getThresholdedScanLine
 
   return IntensityBinMsgType();
 }
-
-void ScanLineConverter::publishPointCloud(const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  PointCloudMsgType::Ptr point_cloud_msg(new PointCloudMsgType);
-  point_cloud_msg->header = scan_line_msg->header;
-
-  point_cloud_msg->points.reserve(scan_line_msg->bins.size());
-  // point_cloud_msg->channels.size();
-  sensor_msgs::ChannelFloat32 channel;
-  channel.name = "intensity";
-  channel.values.reserve(scan_line_msg->bins.size());
-
-  for (int i = 0; i < scan_line_msg->bins.size(); ++i) {
-    if (scan_line_msg->bins[i].distance < min_distance_threshold) continue;
-
-    if (!use_point_cloud_threshold ||
-        scan_line_msg->bins[i].intensity >=
-            min_point_cloud_intensity_threshold) {
-      geometry_msgs::Point32 point;
-      point.x = scan_line_msg->bins[i].distance *
-          cos(atlas::DegToRad(scan_line_msg->angle));
-      point.y = scan_line_msg->bins[i].distance *
-          sin(atlas::DegToRad(scan_line_msg->angle));
-      point.z = 0;
-      point_cloud_msg->points.push_back(point);
-
-      channel.values.push_back(scan_line_msg->bins[i].intensity / 255.0);
-      if (only_first_point) break;
-    }
-  }
-
-  point_cloud_msg->channels.push_back(channel);
-  ROS_WARN("PUBLISHING TO POiNT CLOuD");
-  point_cloud_pub_.publish(point_cloud_msg);
-}
-
 }

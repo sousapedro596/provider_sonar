@@ -58,7 +58,6 @@ class ScanLineConverter {
   typedef ScanLine ScanLineMsgType;
   typedef IntensityBin IntensityBinMsgType;
 
-  typedef sensor_msgs::LaserScan LaserScanMsgType;
   typedef sensor_msgs::PointCloud PointCloudMsgType;
 
   typedef float StepType;
@@ -83,21 +82,13 @@ class ScanLineConverter {
 
   void publishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg);
 
-  void publishLaserScanTest(const ScanLineMsgType::ConstPtr &scan_line_msg);
-
-  void publishLaserScan(const ScanLineMsgType::ConstPtr &scan_line_msg);
-
   IntensityBinMsgType getThresholdedScanLine(
       const ScanLineMsgType::ConstPtr &scan_line_msg);
-
-  void publishPointCloud(const ScanLineMsgType::ConstPtr &scan_line_msg);
 
  private:
   //============================================================================
   // P R I V A T E   M E M B E R S
   ros::Subscriber scan_line_sub_;  // Subscriber
-  ros::Publisher laser_scan_pub_;  // Publishers
-  ros::Publisher point_cloud_pub_;  // Publishers
   ros::Publisher point_cloud2_pub_;  // Publishers
   ros::Publisher image_pub_;  // Publishers
   ros::ServiceServer reconfigserver;  // Services
