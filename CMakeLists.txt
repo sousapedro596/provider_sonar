@@ -28,6 +28,7 @@ find_package( catkin REQUIRED COMPONENTS
         message_generation
         std_msgs
         std_srvs
+        lib_atlas
         )
 
 find_package( Boost REQUIRED COMPONENTS thread )
@@ -60,6 +61,7 @@ catkin_package(
         message_runtime
         std_msgs
         std_srvs
+        lib_atlas
         DEPENDS Boost thread
 )
 

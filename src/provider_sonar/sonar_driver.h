@@ -18,8 +18,8 @@
 //
 // ######################################################################
 
-#ifndef TRITECHMICRON_TRITECHMICRON_H
-#define TRITECHMICRON_TRITECHMICRON_H
+#ifndef PROVIDER_SONAR_SONAR_DRIVER_H
+#define PROVIDER_SONAR_SONAR_DRIVER_H
 
 #include "constants.h"
 #include "message_types.h"
@@ -154,4 +154,4 @@ class SonarDriver {
 };
 }
 
-#endif  // TRITECHMICRON_TRITECHMICRON_H
+#endif  // PROVIDER_SONAR_SONAR_DRIVER_H

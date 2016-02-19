@@ -297,7 +297,7 @@ void ProviderSonarNode::Simulate() {
   for (int i = 0; i < simulate_num_bins_; ++i) {
     intensity_bins[i] =
         simulate_intensity *
-        math_utils::normalizedGaussian(
+        atlas::NormalizedGaussian(
             simulate_bin_distance_step_ * (i + 1) - simulate_distance,
             simulate_intensity_variance);
   }
