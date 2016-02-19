@@ -83,18 +83,11 @@ include_directories(
 
 set( TARGET_NAME provider_sonar_node )
 add_executable( ${TARGET_NAME}
-        ${provider_sonar_SRC_DIR}/main.cpp
+        ${provider_sonar_SRC_DIR}/main.cc
         ${provider_sonar_SRC_DIR}/Serial.cpp
         ${provider_sonar_SRC_DIR}/sonar_driver.cc
+        ${provider_sonar_SRC_DIR}/scanline_converter.cc
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc )
 target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
-set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
-add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
-
-set( TARGET_NAME micron_driver_scanline_parser )
-add_executable( ${TARGET_NAME}
-        ${provider_sonar_SRC_DIR}/scanline_converter.cc
-        ${provider_sonar_SRC_DIR}/scan_line_converter_node.cpp )
-target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} )
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
 add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
