@@ -37,7 +37,8 @@
 #ifndef SCAN_LINE_CONVERTER_H_
 #define SCAN_LINE_CONVERTER_H_
 
-#include <provider_sonar/math.h>
+#include <lib_atlas/maths/trigo.h>
+//#include <provider_sonar/math.h>
 #include <provider_sonar/ScanLine.h>
 
 #include <sensor_msgs/LaserScan.h>
@@ -211,9 +212,9 @@ class ScanLineConverter {
 
     // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
     float delta_x = scan_line_msg->bin_distance_step *
-                    cos(math_utils::degToRad(scan_line_msg->angle - 180.0));
+                    cos(atlas::DegToRad(scan_line_msg->angle - 180.0));
     float delta_y = scan_line_msg->bin_distance_step *
-                    sin(math_utils::degToRad(scan_line_msg->angle - 180.0));
+                    sin(atlas::DegToRad(scan_line_msg->angle - 180.0));
 
     // - try with distance * cos (theta)
     float coordinate_x = 0;
@@ -285,7 +286,7 @@ class ScanLineConverter {
     _IntensityBinMsgType bin = getThresholdedScanLine(scan_line_msg);
     _LaserScanMsgType laser_scan_msg_;
     if (laser_scan_msg_.ranges.size() == 0) {
-      laser_scan_msg_.angle_min = math_utils::degToRad(scan_line_msg->angle);
+      laser_scan_msg_.angle_min = atlas::DegToRad(scan_line_msg->angle);
       laser_scan_msg_.header = scan_line_msg->header;
       last_scan_angle_ = scan_line_msg->angle;
       last_angular_direction_ = 0;
@@ -328,10 +329,10 @@ class ScanLineConverter {
         (angular_direction != last_angular_direction_ &&
          angular_direction != 0 && last_angular_direction_ != 0)) {
       // gather statistics
-      laser_scan_msg_.angle_max = math_utils::degToRad(scan_line_msg->angle);
+      laser_scan_msg_.angle_max = atlas::DegToRad(scan_line_msg->angle);
       laser_scan_msg_.angle_increment =
           laser_scan_msg_.ranges.size() > 1
-              ? math_utils::degToRad(angular_distance_ /
+              ? atlas::DegToRad(angular_distance_ /
                                      (laser_scan_msg_.ranges.size() - 1))
               : 0;
       laser_scan_msg_.range_min = min_laser_distance_;
@@ -399,9 +400,9 @@ class ScanLineConverter {
               min_point_cloud_intensity_threshold) {
         geometry_msgs::Point32 point;
         point.x = scan_line_msg->bins[i].distance *
-                  cos(math_utils::degToRad(scan_line_msg->angle));
+                  cos(atlas::DegToRad(scan_line_msg->angle));
         point.y = scan_line_msg->bins[i].distance *
-                  sin(math_utils::degToRad(scan_line_msg->angle));
+                  sin(atlas::DegToRad(scan_line_msg->angle));
         point.z = 0;
         point_cloud_msg->points.push_back(point);
 
