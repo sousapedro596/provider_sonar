@@ -22,109 +22,149 @@
 #define TRITECHMICRON_MESSAGETYPES_H
 
 #include <provider_sonar/sonar_driver.h>
+#include "messages_id.h"
 #include <iostream>
 #include "ros/ros.h"
 #include <vector>
 #include <bitset>
 #include <cmath>
 
-#define TRITECH_MSG_LENGTH_CHK(length)                                     \
-  if (msg.data.size() != length) {                                         \
-    std::cerr << __FUNCTION__ << ":" << __LINE__                           \
-              << " - Invalid message length (" << msg.data.size()          \
-              << " != " << length << ")" << std::endl;                     \
-    return;                                                                \
-  }                                                                        \
-  if (msg.type != type) {                                                  \
-    std::cerr << __FUNCTION__ << ":" << __LINE__                           \
-              << " - Invalid message type (" << msg.type << " != " << type \
-              << ")" << std::endl;                                         \
-    return;                                                                \
+namespace provider_sonar {
+
+struct SonarMessage {
+  uint8_t header_;
+  uint32_t hex_length_;
+  uint16_t binary_length_;
+  uint8_t tx_node_;
+  uint8_t rx_node_;
+  uint8_t n_byte_;
+  provider_sonar::MessageID id_;
+  uint8_t message_sequence_;
+  uint8_t node_;
+  std::vector<uint8_t> data_;
+  uint8_t line_feed_;
+
+  SonarMessage() {
+    header_ = 0;
+    hex_length_ = 0;
+    binary_length_ = 0;
+    tx_node_ = 0;
+    rx_node_ = 0;
+    n_byte_ = 0;
+    id_ = mtNull;
+    message_sequence_ = 0;
+    node_ = 0;
+    data_.clear();
+    line_feed_ = 0;
   }
 
-#define TRITECH_MSG_EXPECT_BYTE_AT(byte, at)                                   \
-  if (msg.data.size() < at) {                                                  \
-    std::cerr << __FUNCTION__ << ":" << __LINE__ << " - Message too short"     \
-              << std::endl;                                                    \
-    return;                                                                    \
-  }                                                                            \
-  if (msg.data[at] != byte) {                                                  \
-    std::cerr << __FUNCTION__ << ":" << __LINE__ << " - Expected " << std::hex \
-              << (int)byte << std::dec << " @" << at << " but got "            \
-              << std::hex << (int)msg.data[at] << std::endl;                   \
-    return;                                                                    \
+  bool MessageLenghtCheck(uint8_t length, MessageID id) const {
+    if (data_.size() != length) {
+    std::cerr << "Invalid message length (" << data_.size()
+              << " != " << length << ")" << std::endl;
+    return false;
+    }
+    if (id_ != id) {
+      std::cerr << "Invalid message type (" << id_ << " != " << id
+                << ")" << std::endl;
+      return false;
+    }
+    return true;
   }
 
-namespace tritech {
-struct Message {
-  uint16_t binLength;
-  uint8_t txNode;
-  uint8_t rxNode;
-  uint8_t count;
-  std::vector<uint8_t> data;
-  tritech::MessageType type;
-
-  Message() {
-    binLength = 0;
-    txNode = 0;
-    rxNode = 0;
-    count = 0;
-    data.clear();
-    type = mtNull;
+  bool IsByteEqual(uint8_t byte, uint8_t at) const {
+    if (data_.size() < at) {
+      std::cerr << "Message too short" << std::endl;
+      return false;
+    }
+    if (data_[at] != byte) {
+    std::cerr << "Expected " << std::hex << (int) byte << std::dec
+              << " @" << at << " but got "
+              << std::hex << (int) data_[at] << std::endl;
+    return false;
+    }
+    return true;
   }
 };
 
-// ######################################################################
-static std::vector<unsigned char> mtSendBBUserMsg = {
-    0x40, 0x30, 0x30, 0x30, 0x38, 0x08, 0x00,
-    0xFF, 0x02, 0x03, 0x18, 0x80, 0x02, 0x0A};
+//------------------------------------------------------------------------------
+//
+static std::vector<uint8_t> mtSendBBUserMsg = {
+  0x40,  // header
+  0x30,  // hex_length
+  0x30,  // hex_length
+  0x30,  // hex_length
+  0x38,  // hex_length
+  0x08,  // binairy_length
+  0x00,  // binairy_length
+  0xFF,  // tx_node
+  0x02,  // rx_node
+  0x03,  // n_byte
+  0x17,  // mtSendVersion
+  0x80,  // message_sequence
+  0x02,  // node
+  0x0A}; // line_feed
 
-// ######################################################################
-static std::vector<unsigned char> mtSendVersionMsg = {
-    0x40, 0x30, 0x30, 0x30, 0x38, 0x08, 0x00,
-    0xFF, 0x02, 0x03, 0x17, 0x80, 0x02, 0x0A};
+//------------------------------------------------------------------------------
+//
+static std::vector<uint8_t> mtSendVersionMsg = {
+  0x40,  // header
+  0x30,  // hex_length
+  0x30,  // hex_length
+  0x30,  // hex_length
+  0x38,  // hex_length
+  0x08,  // binairy_length
+  0x00,  // binairy_length
+  0xFF,  // tx_node
+  0x02,  // rx_node
+  0x03,  // n_byte
+  0x17,  // mtSendVersion
+  0x80,  // message_sequence
+  0x02,  // node
+  0x0A}; // line_feed
 
-// ######################################################################
+//------------------------------------------------------------------------------
+//
 struct mtVersionDataMsg {
-  static const int type = mtVersionData;
+  const MessageID id_ = mtVersionData;
+  uint8_t node_;
+  uint8_t software_version_;
+  uint8_t info_bits_;
+  uint16_t uid_;
+  uint32_t program_length_;
+  uint16_t checksum_;
 
-  uint8_t node;
-  uint8_t softwareVersion;
-  uint8_t infoBits;
-  uint16_t uid;
-  uint32_t programLength;
-  uint16_t checksum;
+  mtVersionDataMsg(SonarMessage const &msg) {
+    msg.MessageLenghtCheck(26, mtVersionData);
 
-  mtVersionDataMsg(Message const& msg) {
-    TRITECH_MSG_LENGTH_CHK(26);
-    TRITECH_MSG_EXPECT_BYTE_AT('@', 1);
-    TRITECH_MSG_EXPECT_BYTE_AT(mtVersionData, 11);
+    msg.IsByteEqual('@', 1);
+    msg.IsByteEqual(mtVersionData, 11);
 
-    node = msg.data[13];
+    node_ = msg.data_[13];
 
-    softwareVersion = msg.data[14];
+    software_version_ = msg.data_[14];
 
-    infoBits = msg.data[15];
+    info_bits_ = msg.data_[15];
 
-    uid = uint16_t(msg.data[16] << 0);
-    uid |= uint16_t(msg.data[17] << 8);
+    uid_ = uint16_t(msg.data_[16] << 0);
+    uid_ |= uint16_t(msg.data_[17] << 8);
 
-    programLength = uint32_t(msg.data[18] << 0);
-    programLength |= uint32_t(msg.data[19] << 8);
-    programLength |= uint32_t(msg.data[20] << 16);
-    programLength |= uint32_t(msg.data[21] << 24);
+    program_length_ = uint32_t(msg.data_[18] << 0);
+    program_length_ |= uint32_t(msg.data_[19] << 8);
+    program_length_ |= uint32_t(msg.data_[20] << 16);
+    program_length_ |= uint32_t(msg.data_[21] << 24);
 
-    checksum = uint32_t(msg.data[22] << 0);
-    checksum += uint32_t(msg.data[23] << 8);
+    checksum_ = uint32_t(msg.data_[22] << 0);
+    checksum_ += uint32_t(msg.data_[23] << 8);
 
-    TRITECH_MSG_EXPECT_BYTE_AT(0x0A, 25);
+    msg.IsByteEqual(0x0A, 25);
   }
 
   void print() {
     printf(
         "mtVersionDataMsg: node = %#x swVer = %#x infoBits = %#x uid = %#x "
         "programLength = %d checksum = %d\n",
-        node, softwareVersion, infoBits, uid, programLength, checksum);
+        node_, software_version_, info_bits_, uid_, program_length_, checksum_);
   }
 };
 
@@ -144,23 +184,22 @@ struct mtAliveMsg {
   bool noParams;
   bool sentCfg;
 
-  mtAliveMsg(Message const& msg) {
-    TRITECH_MSG_EXPECT_BYTE_AT('@', 1);
-    TRITECH_MSG_LENGTH_CHK(23);
-    TRITECH_MSG_EXPECT_BYTE_AT(mtAlive, 11);
-    TRITECH_MSG_EXPECT_BYTE_AT(0x80, 12);
+  mtAliveMsg(SonarMessage const& msg) {
+    msg.IsByteEqual('@', 1);
+    msg.IsByteEqual(mtAlive, 11);
+    msg.IsByteEqual(0x80, 12);
 
-    txNode = msg.data[13];
+    txNode = msg.data_[13];
 
-    headTime_msec = uint32_t(msg.data[15]) << 0;
-    headTime_msec |= uint32_t(msg.data[16]) << 8;
-    headTime_msec |= uint32_t(msg.data[17]) << 16;
-    headTime_msec |= uint32_t(msg.data[18]) << 24;
+    headTime_msec = uint32_t(msg.data_[15]) << 0;
+    headTime_msec |= uint32_t(msg.data_[16]) << 8;
+    headTime_msec |= uint32_t(msg.data_[17]) << 16;
+    headTime_msec |= uint32_t(msg.data_[18]) << 24;
 
-    motorPos = msg.data[19] << 0;
-    motorPos |= msg.data[20] << 8;
+    motorPos = msg.data_[19] << 0;
+    motorPos |= msg.data_[20] << 8;
 
-    std::bitset<8> headinf = msg.data[21];
+    std::bitset<8> headinf = msg.data_[21];
     inCentre = headinf[0];
     centered = headinf[1];
     motoring = headinf[2];
@@ -170,7 +209,7 @@ struct mtAliveMsg {
     noParams = headinf[6];
     sentCfg = headinf[7];
 
-    TRITECH_MSG_EXPECT_BYTE_AT(0x0A, 22);
+    msg.IsByteEqual(0x0A, 22);
   };
 
   void print() {
@@ -184,9 +223,21 @@ struct mtAliveMsg {
 };
 
 // ######################################################################
-static std::vector<uint8_t> mtRebootMsg = {0x40, 0x30, 0x30, 0x30, 0x38,
-                                           0x08, 0x00, 0xFF, 0x02, 0x03,
-                                           0x10, 0x80, 0x02, 0x0A};
+static std::vector<uint8_t> mtRebootMsg = {
+    0x40,  // header
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x38,  // hex_length
+    0x08,  // binairy_length
+    0x00,  // binairy_length
+    0xFF,  // tx_node
+    0x02,  // rx_node
+    0x03,  // n_byte
+    0x10,  // mtReBoot
+    0x80,  // message_sequence
+    0x02,  // node
+    0x0A}; // line_feed
 
 // ######################################################################
 struct mtHeadCommandMsg {
@@ -271,8 +322,24 @@ struct mtHeadCommandMsg {
 
 // ######################################################################
 static std::vector<uint8_t> mtSendDataMsg = {
-    0x40, 0x30, 0x30, 0x30, 0x43, 0x0C, 0x00, 0xFF, 0x02,
-    0x07, 0x19, 0x80, 0x02, 0x00, 0x00, 0x00, 0x00, 0x0A};
+    0x40,  // header
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x43,  // hex_length
+    0x0C,  // binairy_length
+    0x00,  // binairy_length
+    0xFF,  // tx_node
+    0x02,  // rx_node
+    0x07,  // n_byte
+    0x19,  // mtSendData
+    0x80,  // message_sequence
+    0x02,  // node
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x0A}; // line_feed
 
 // ######################################################################
 struct mtHeadDataMsg {
@@ -356,7 +423,7 @@ struct mtHeadDataMsg {
     // std::cout << "]" << std::endl;
   }
 
-  mtHeadDataMsg(Message const& msg) {
+  mtHeadDataMsg(SonarMessage const& msg) {
     //			if(msg.count == 0)
     //			{
     //				std::cerr << "Your sonar is sending multi-packet data! This
@@ -368,19 +435,19 @@ struct mtHeadDataMsg {
     //				return;
     //			}
 
-    TRITECH_MSG_EXPECT_BYTE_AT('@', 1);
-    TRITECH_MSG_EXPECT_BYTE_AT(mtHeadData, 11);
-    uint8_t const msgSequenceBitset = msg.data[12];
+    msg.IsByteEqual('@', 1);
+    msg.IsByteEqual(mtHeadData, 11);
+    uint8_t const msgSequenceBitset = msg.data_[12];
     packetSequence = msgSequenceBitset & 0xEF;
     isLastInSequence = msgSequenceBitset & 0x80;
 
-    std::bitset<8> headStatus = msg.data[17];
+    std::bitset<8> headStatus = msg.data_[17];
     hdPwrLoss = headStatus[0];
     motorErr = headStatus[1];
     dataRangeis0to80db = headStatus[4];
     messageAppended = headStatus[7];
 
-    switch (msg.data[18]) {
+    switch (msg.data_[18]) {
       case 0:
         sweepCode = Scanning_Normal;
         break;
@@ -395,12 +462,12 @@ struct mtHeadDataMsg {
         break;
       default:
         std::cerr << __FUNCTION__ << ":" << __LINE__
-                  << " - Unknown Sweep Code (" << msg.data[18] << ")"
+                  << " - Unknown Sweep Code (" << msg.data_[18] << ")"
                   << std::endl;
         break;
     }
 
-    std::bitset<16> headCtrl = msg.data[19] | (uint16_t(msg.data[20]) << 8);
+    std::bitset<16> headCtrl = msg.data_[19] | (uint16_t(msg.data_[20]) << 8);
     headControl.adc8on = headCtrl[0];
     headControl.cont = headCtrl[1];
     headControl.scanright = headCtrl[2];
@@ -419,9 +486,9 @@ struct mtHeadDataMsg {
     headControl.ignoreSensor = headCtrl[15];
 
     rangeScale =
-        ((uint16_t(msg.data[21]) | (uint16_t(msg.data[22]) << 8)) & 0xC0FF) /
+        ((uint16_t(msg.data_[21]) | (uint16_t(msg.data_[22]) << 8)) & 0xC0FF) /
         10;
-    uint8_t rangeTp = uint8_t(msg.data[22]) >> 6;
+    uint8_t rangeTp = uint8_t(msg.data_[22]) >> 6;
     switch (rangeTp) {
       case 0:
         rangeUnits = meters;
@@ -442,31 +509,31 @@ struct mtHeadDataMsg {
         break;
     }
 
-    stepSize_degrees = msg.data[40] / 16.0 * 180.0 / 200.0;
-    bearing_degrees = (uint16_t(msg.data[41]) | (uint16_t(msg.data[42]) << 8)) /
+    stepSize_degrees = msg.data_[40] / 16.0 * 180.0 / 200.0;
+    bearing_degrees = (uint16_t(msg.data_[41]) | (uint16_t(msg.data_[42]) << 8)) /
                       16.0 * 180.0 / 200.0;
 
-    uint16_t dbytes = (uint16_t(msg.data[43]) | (uint16_t(msg.data[44]) << 8));
+    uint16_t dbytes = (uint16_t(msg.data_[43]) | (uint16_t(msg.data_[44]) << 8));
     if (headControl.adc8on) {
       scanLine.resize(dbytes);
-      if (scanLine.size() != msg.data.size() - 46) {
+      if (scanLine.size() != msg.data_.size() - 46) {
         std::cerr << __FUNCTION__ << ":" << __LINE__
                   << " - scanLine appears to be mis-sized.  Size is "
                   << scanLine.size() << ", but should be "
-                  << msg.data.size() - 46 << std::endl;
+                  << msg.data_.size() - 46 << std::endl;
         return;
       }
 
       // TODO: std::copy here
       for (size_t i = 0; i < scanLine.size(); ++i)
-        scanLine[i] = msg.data.at(i + 45);
+        scanLine[i] = msg.data_.at(i + 45);
     } else {
       scanLine.resize(dbytes * 2);
-      if (scanLine.size() != msg.data.size() / 2 - 46) {
+      if (scanLine.size() != msg.data_.size() / 2 - 46) {
         std::cerr << __FUNCTION__ << ":" << __LINE__
                   << " - scanLine appears to be mis-sized.  Size is "
                   << scanLine.size() << ", but should be "
-                  << msg.data.size() - 46 << std::endl;
+                  << msg.data_.size() - 46 << std::endl;
         return;
       }
       std::cerr << __FUNCTION__ << ":" << __LINE__

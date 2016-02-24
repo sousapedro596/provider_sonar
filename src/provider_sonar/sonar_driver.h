@@ -21,11 +21,12 @@
 #ifndef PROVIDER_SONAR_SONAR_DRIVER_H
 #define PROVIDER_SONAR_SONAR_DRIVER_H
 
-#include "constants.h"
-#include "message_types.h"
+#include "sonar_messages/messages_id.h"
+#include "sonar_messages/sonar_messages.h"
 #include <vector>
 #include "Serial.h"
 #include <boost/thread.hpp>
+#include <bits/shared_ptr.h>
 #include "stdint.h"
 
 namespace provider_sonar {
@@ -107,7 +108,7 @@ class SonarDriver {
   void ProcessByte(uint8_t byte);
 
   // Process an incoming message
-  void ProcessMessage(tritech::Message msg);
+  void ProcessMessage(SonarMessage msg);
 
   // The method being run by its_serial_thread_
   void SerialThreadMethod();
@@ -132,7 +133,7 @@ class SonarDriver {
   // The current message buffer begin read in
   // the current incoming message begin constructed from itsRawMsg
   std::vector<uint8_t> its_raw_msg_;
-  tritech::Message its_msg_;
+  SonarMessage its_msg_;
   bool hasHeardMtAlive;  // Have we ever heard an mtAlive message from the sonar?
   bool hasHeardMtVersionData;  // Have we ever heard an mtVersionData from the sonar?
   bool hasHeardMtHeadData;  // Have we received a mtHeadData from the sonar?

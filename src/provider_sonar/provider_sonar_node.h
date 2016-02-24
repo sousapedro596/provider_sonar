@@ -41,7 +41,6 @@
 #include "stdint.h"
 #include <provider_sonar/Serial.h>
 #include <provider_sonar/sonar_driver.h>
-//#include <provider_sonar/math.h>
 #include <lib_atlas/maths/numbers.h>
 
 namespace provider_sonar {

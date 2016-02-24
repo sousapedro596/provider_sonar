@@ -71,16 +71,16 @@ class ScanLineConverter {
 
   //==========================================================================
   // P U B L I C   M E T H O D S
-  bool reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
+  bool Reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
                 provider_sonar::scanline_parser_reconfig::Response &resp);
 
-  bool getparams(ros::NodeHandle &nh);
+  bool Getparams(ros::NodeHandle &nh);
 
-  void clearLaserStats();
+  void ClearLaserStats();
 
-  void scanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg);
+  void ScanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg);
 
-  void publishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg);
+  void PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg);
 
   IntensityBinMsgType getThresholdedScanLine(
       const ScanLineMsgType::ConstPtr &scan_line_msg);
@@ -90,7 +90,6 @@ class ScanLineConverter {
   // P R I V A T E   M E M B E R S
   ros::Subscriber scan_line_sub_;  // Subscriber
   ros::Publisher point_cloud2_pub_;  // Publishers
-  ros::Publisher image_pub_;  // Publishers
   ros::ServiceServer reconfigserver;  // Services
 
   double min_laser_intensity_threshold;

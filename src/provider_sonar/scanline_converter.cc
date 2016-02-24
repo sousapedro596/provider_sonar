@@ -28,7 +28,7 @@
  * along with S.O.N.I.A. software. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scanline_converter.h"
+#include "provider_sonar/scanline_converter.h"
 
 namespace provider_sonar {
 
@@ -38,19 +38,16 @@ namespace provider_sonar {
 //------------------------------------------------------------------------------
 //
 ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
-  // Subscribers
   scan_line_sub_ = nh.subscribe("/micron_driver/scan_line", 1,
-                                &ScanLineConverter::scanLineCB, this);
-  // Publishers
+                                &ScanLineConverter::ScanLineCB, this);
   point_cloud2_pub_ =
       nh.advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
-  // Service
   reconfigserver = nh.advertiseService("Scanline_Reconfiguration",
-                                       &ScanLineConverter::reconfig, this);
+                                       &ScanLineConverter::Reconfig, this);
 
-  getparams(nh);
-  clearLaserStats();
+  Getparams(nh);
+  ClearLaserStats();
 }
 
 //==============================================================================
@@ -58,7 +55,7 @@ ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
 
 //------------------------------------------------------------------------------
 //
-bool ScanLineConverter::reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
+bool ScanLineConverter::Reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
                                  provider_sonar::scanline_parser_reconfig::Response &resp) {
   min_laser_intensity_threshold = req.min_laser_intensity_threshold;
   min_distance_threshold = req.min_distance_threshold;
@@ -74,7 +71,7 @@ bool ScanLineConverter::reconfig(provider_sonar::scanline_parser_reconfig::Reque
 
 //------------------------------------------------------------------------------
 //
-bool ScanLineConverter::getparams(ros::NodeHandle &nh) {
+bool ScanLineConverter::Getparams(ros::NodeHandle &nh) {
   if (nh.hasParam("/scan_line_parser/use_point_cloud_threshold"))
     nh.getParam("/scan_line_parser/use_point_cloud_threshold",
                 use_point_cloud_threshold);
@@ -123,9 +120,7 @@ bool ScanLineConverter::getparams(ros::NodeHandle &nh) {
 
 //------------------------------------------------------------------------------
 //
-void ScanLineConverter::clearLaserStats() {
-  // laser_scan_msg_.ranges.clear();
-  // laser_scan_msg_.intensities.clear();
+void ScanLineConverter::ClearLaserStats() {
   min_laser_distance_ = std::numeric_limits<float>::max();
   max_laser_distance_ = std::numeric_limits<float>::min();
   angular_distance_ = 0;
@@ -136,17 +131,14 @@ void ScanLineConverter::clearLaserStats() {
 //------------------------------------------------------------------------------
 //
 // Callback when a scanline is received
-void ScanLineConverter::scanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  // publishLaserScan(scan_line_msg);
-  // ROS_INFO("Publishing");
-  // publishLaserScanTest(scan_line_msg);
-  // publishPointCloud(scan_line_msg);
-  publishPointCloud2(scan_line_msg);
+void ScanLineConverter::ScanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg) {
+  ROS_INFO("Publishing");
+  PublishPointCloud2(scan_line_msg);
 }
 
 //------------------------------------------------------------------------------
 //
-void ScanLineConverter::publishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg) {
+void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg) {
   sensor_msgs::PointCloud2 point_cloud_msg_;
   // - Copy ROS header
   point_cloud_msg_.header = scan_line_msg->header;

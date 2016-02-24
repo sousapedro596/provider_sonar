@@ -21,8 +21,8 @@
 #ifndef TRITECHMICRON_CONSTANTS_H
 #define TRITECHMICRON_CONSTANTS_H
 
-namespace tritech {
-enum MessageType {
+namespace provider_sonar {
+enum MessageID {
   mtNull = 0,
   mtVersionData = 1,
   mtHeadData = 2,

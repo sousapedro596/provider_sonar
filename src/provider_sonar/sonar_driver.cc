@@ -19,13 +19,11 @@
 // ######################################################################
 
 #include "provider_sonar/sonar_driver.h"
-#include "provider_sonar/message_types.h"
+#include "sonar_messages/sonar_messages.h"
 #include <iostream>
 #include <algorithm>
 #include <chrono>
 #include "stdint.h"
-
-using namespace tritech;
 
 namespace provider_sonar {
 //==============================================================================
@@ -145,7 +143,7 @@ void SonarDriver::RegisterScanLineCallback(
 //------------------------------------------------------------------------------
 //
 void SonarDriver::SerialThreadMethod() {
-  while (its_running_ == true) {
+  while (its_running_) {
     std::vector<uint8_t> bytes = serial_.read(2048);
     if (bytes.size() > 0) {
       for (size_t i = 0; i < bytes.size(); ++i) ProcessByte(bytes[i]);
@@ -254,7 +252,7 @@ void SonarDriver::ProcessingThreadMethod() {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::ResetMessage() {
-  its_msg_ = Message();
+  its_msg_ = SonarMessage();
   its_state_ = WaitingForAt;
   its_raw_msg_.clear();
 }
@@ -275,7 +273,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       its_raw_msg_.push_back(0);
       its_raw_msg_.push_back(byte);
       its_state_ = ReadingHeader;
-      its_msg_ = Message();
+      its_msg_ = SonarMessage();
       return;
     } else if (its_debug_mode_)
       std::cout << " bogus byte: " << std::hex << int(byte)
@@ -288,31 +286,31 @@ void SonarDriver::ProcessByte(uint8_t byte) {
     if (its_raw_msg_.size() < 7) return;
 
     if (its_raw_msg_.size() == 7) {
-      its_msg_.binLength = uint16_t(byte);
+      its_msg_.binary_length_ = uint16_t(byte);
       return;
     }
     if (its_raw_msg_.size() == 8) {
-      its_msg_.binLength |= uint16_t(byte) << 8;
-      if (its_msg_.binLength > 1000) {
+      its_msg_.binary_length_ |= uint16_t(byte) << 8;
+      if (its_msg_.binary_length_ > 1000) {
         if (its_debug_mode_) std::cout << " Message length too big!" << std::endl;
         ResetMessage();
       }
       return;
     }
     if (its_raw_msg_.size() == 9) {
-      its_msg_.txNode = byte;
+      its_msg_.tx_node_ = byte;
       return;
     }
     if (its_raw_msg_.size() == 10) {
-      its_msg_.rxNode = byte;
+      its_msg_.rx_node_ = byte;
       return;
     }
     if (its_raw_msg_.size() == 11) {
-      its_msg_.count = byte;
+      its_msg_.n_byte_ = byte;
       return;
     }
     if (its_raw_msg_.size() == 12) {
-      its_msg_.type = MessageType(byte);
+      its_msg_.id_ = MessageID(byte);
       its_state_ = ReadingData;
       return;
     }
@@ -325,9 +323,9 @@ void SonarDriver::ProcessByte(uint8_t byte) {
   if (its_state_ == ReadingData) {
     // if(itsDebugMode) std::cout <<"  Remaining bytes: "<< std::dec  <<
     // uint16_t(itsMsg.binLength - (itsRawMsg.size() - 7)) << std::dec;
-    if (uint16_t(its_msg_.binLength - (its_raw_msg_.size() - 7)) == 0) {
+    if (uint16_t(its_msg_.binary_length_ - (its_raw_msg_.size() - 7)) == 0) {
       if (byte == 0x0A) {
-        its_msg_.data = its_raw_msg_;
+        its_msg_.data_ = its_raw_msg_;
         ProcessMessage(its_msg_);
         ResetMessage();
       } else {
@@ -341,8 +339,8 @@ void SonarDriver::ProcessByte(uint8_t byte) {
 
 //------------------------------------------------------------------------------
 //
-void SonarDriver::ProcessMessage(tritech::Message msg) {
-  if (msg.type == mtVersionData) {
+void SonarDriver::ProcessMessage(SonarMessage msg) {
+  if (msg.id_ == mtVersionData) {
     mtVersionDataMsg parsedMsg(msg);
     hasHeardMtVersionData = true;
 
@@ -350,7 +348,7 @@ void SonarDriver::ProcessMessage(tritech::Message msg) {
       std::cout << std::endl
           << "Received mtVersionData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.type == mtAlive) {
+  } else if (msg.id_ == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     hasHeardMtAlive = true;
     hasParams = !parsedMsg.noParams;
@@ -359,7 +357,7 @@ void SonarDriver::ProcessMessage(tritech::Message msg) {
       std::cout << std::endl
           << "Received mtAlive Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.type == mtHeadData) {
+  } else if (msg.id_ == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
     hasHeardMtHeadData = true;
 
@@ -392,12 +390,12 @@ void SonarDriver::ProcessMessage(tritech::Message msg) {
       std::cout << std::endl
           << "Received mtHeadData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.type == mtBBUserData) {
+  } else if (msg.id_ == mtBBUserData) {
     if (its_debug_mode_)
       std::cout << std::endl
           << "Received mtBBUserData Message" << std::endl;
   } else {
-    std::cerr << "Unhandled Message Type: " << msg.type << std::endl;
+    std::cerr << "Unhandled Message Type: " << msg.id_ << std::endl;
   }
 }
 }
