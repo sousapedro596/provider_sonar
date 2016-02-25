@@ -287,12 +287,12 @@ void SonarDriver::ProcessByte(uint8_t byte) {
     if (its_raw_msg_.size() < 7) return;
 
     if (its_raw_msg_.size() == 7) {
-      its_msg_.binary_length_ = uint16_t(byte);
+      its_msg_.binary_length = uint16_t(byte);
       return;
     }
     if (its_raw_msg_.size() == 8) {
-      its_msg_.binary_length_ |= uint16_t(byte) << 8;
-      if (its_msg_.binary_length_ > 1000) {
+      its_msg_.binary_length |= uint16_t(byte) << 8;
+      if (its_msg_.binary_length > 1000) {
         if (its_debug_mode_)
           std::cout << " Message length too big!" << std::endl;
         ResetMessage();
@@ -300,19 +300,19 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       return;
     }
     if (its_raw_msg_.size() == 9) {
-      its_msg_.tx_node_ = byte;
+      its_msg_.tx_node = byte;
       return;
     }
     if (its_raw_msg_.size() == 10) {
-      its_msg_.rx_node_ = byte;
+      its_msg_.rx_node = byte;
       return;
     }
     if (its_raw_msg_.size() == 11) {
-      its_msg_.n_byte_ = byte;
+      its_msg_.n_byte = byte;
       return;
     }
     if (its_raw_msg_.size() == 12) {
-      its_msg_.id_ = MessageID(byte);
+      its_msg_.id = MessageID(byte);
       its_state_ = ReadingData;
       return;
     }
@@ -325,9 +325,9 @@ void SonarDriver::ProcessByte(uint8_t byte) {
   if (its_state_ == ReadingData) {
     // if(itsDebugMode) std::cout <<"  Remaining bytes: "<< std::dec  <<
     // uint16_t(itsMsg.binLength - (itsRawMsg.size() - 7)) << std::dec;
-    if (uint16_t(its_msg_.binary_length_ - (its_raw_msg_.size() - 7)) == 0) {
+    if (uint16_t(its_msg_.binary_length - (its_raw_msg_.size() - 7)) == 0) {
       if (byte == 0x0A) {
-        its_msg_.data_ = its_raw_msg_;
+        its_msg_.data = its_raw_msg_;
         ProcessMessage(its_msg_);
         ResetMessage();
       } else {
@@ -343,7 +343,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::ProcessMessage(SonarMessage msg) {
-  if (msg.id_ == mtVersionData) {
+  if (msg.id == mtVersionData) {
     mtVersionDataMsg parsedMsg(msg);
     hasHeardMtVersionData = true;
 
@@ -351,16 +351,16 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
       std::cout << std::endl
                 << "Received mtVersionData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.id_ == mtAlive) {
+  } else if (msg.id == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     hasHeardMtAlive = true;
-    hasParams = !parsedMsg.no_params_;
+    hasParams = !parsedMsg.no_params;
 
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtAlive Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.id_ == mtHeadData) {
+  } else if (msg.id == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
     hasHeardMtHeadData = true;
 
@@ -369,36 +369,36 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     }
 
     float range_meters;
-    switch (parsedMsg.rangeUnits) {
+    switch (parsedMsg.range_units) {
       case mtHeadDataMsg::meters:
-        range_meters = parsedMsg.rangeScale;
+        range_meters = parsedMsg.ranges_scale;
         break;
       case mtHeadDataMsg::feet:
-        range_meters = parsedMsg.rangeScale * 0.3048;
+        range_meters = parsedMsg.ranges_scale * 0.3048;
         break;
       case mtHeadDataMsg::fathoms:
-        range_meters = parsedMsg.rangeScale * 1.8288;
+        range_meters = parsedMsg.ranges_scale * 1.8288;
         break;
       case mtHeadDataMsg::yards:
-        range_meters = parsedMsg.rangeScale * 0.9144;
+        range_meters = parsedMsg.ranges_scale * 0.9144;
         break;
     }
 
-    float metersPerBin = range_meters / parsedMsg.scanLine.size();
+    float metersPerBin = range_meters / parsedMsg.scanline.size();
     if (itsScanLineCallback)
-      itsScanLineCallback(parsedMsg.bearing_degrees, metersPerBin,
-                          parsedMsg.scanLine);
+      itsScanLineCallback(parsedMsg.transducer_bearing, metersPerBin,
+                          parsedMsg.scanline);
 
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtHeadData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
-  } else if (msg.id_ == mtBBUserData) {
+  } else if (msg.id == mtBBUserData) {
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtBBUserData Message" << std::endl;
   } else {
-    std::cerr << "Unhandled Message Type: " << msg.id_ << std::endl;
+    std::cerr << "Unhandled Message Type: " << msg.id << std::endl;
   }
 }
 }
