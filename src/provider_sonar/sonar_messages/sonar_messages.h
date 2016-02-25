@@ -60,13 +60,13 @@ struct SonarMessage {
 
   bool MessageLenghtCheck(uint8_t length, MessageID id) const {
     if (data_.size() != length) {
-    std::cerr << "Invalid message length (" << data_.size()
-              << " != " << length << ")" << std::endl;
-    return false;
+      std::cerr << "Invalid message length (" << data_.size()
+                << " != " << length << ")" << std::endl;
+      return false;
     }
     if (id_ != id) {
-      std::cerr << "Invalid message type (" << id_ << " != " << id
-                << ")" << std::endl;
+      std::cerr << "Invalid message type (" << id_ << " != " << id << ")"
+                << std::endl;
       return false;
     }
     return true;
@@ -78,10 +78,9 @@ struct SonarMessage {
       return false;
     }
     if (data_[at] != byte) {
-    std::cerr << "Expected " << std::hex << (int) byte << std::dec
-              << " @" << at << " but got "
-              << std::hex << (int) data_[at] << std::endl;
-    return false;
+      std::cerr << "Expected " << std::hex << (int)byte << std::dec << " @"
+                << at << " but got " << std::hex << (int)data_[at] << std::endl;
+      return false;
     }
     return true;
   }
@@ -90,44 +89,46 @@ struct SonarMessage {
 //------------------------------------------------------------------------------
 //
 static std::vector<uint8_t> mtSendBBUserMsg = {
-  0x40,  // header
-  0x30,  // hex_length
-  0x30,  // hex_length
-  0x30,  // hex_length
-  0x38,  // hex_length
-  0x08,  // binairy_length
-  0x00,  // binairy_length
-  0xFF,  // tx_node
-  0x02,  // rx_node
-  0x03,  // n_byte
-  0x17,  // mtSendVersion
-  0x80,  // message_sequence
-  0x02,  // node
-  0x0A}; // line_feed
+    0x40,  // header
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x38,  // hex_length
+    0x08,  // binairy_length
+    0x00,  // binairy_length
+    0xFF,  // tx_node
+    0x02,  // rx_node
+    0x03,  // n_byte
+    0x17,  // mtSendVersion
+    0x80,  // message_sequence
+    0x02,  // node
+    0x0A   // line_feed
+};
 
 //------------------------------------------------------------------------------
 //
 static std::vector<uint8_t> mtSendVersionMsg = {
-  0x40,  // header
-  0x30,  // hex_length
-  0x30,  // hex_length
-  0x30,  // hex_length
-  0x38,  // hex_length
-  0x08,  // binairy_length
-  0x00,  // binairy_length
-  0xFF,  // tx_node
-  0x02,  // rx_node
-  0x03,  // n_byte
-  0x17,  // mtSendVersion
-  0x80,  // message_sequence
-  0x02,  // node
-  0x0A}; // line_feed
+    0x40,  // header
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x38,  // hex_length
+    0x08,  // binairy_length
+    0x00,  // binairy_length
+    0xFF,  // tx_node
+    0x02,  // rx_node
+    0x03,  // n_byte
+    0x17,  // mtSendVersion
+    0x80,  // message_sequence
+    0x02,  // node
+    0x0A   // line_feed
+};
 
 //------------------------------------------------------------------------------
 //
 struct mtVersionDataMsg {
   const MessageID id_ = mtVersionData;
-  uint8_t node_;
+  uint8_t tx_node_;
   uint8_t software_version_;
   uint8_t info_bits_;
   uint16_t uid_;
@@ -140,7 +141,7 @@ struct mtVersionDataMsg {
     msg.IsByteEqual('@', 1);
     msg.IsByteEqual(mtVersionData, 11);
 
-    node_ = msg.data_[13];
+    tx_node_ = msg.data_[13];
 
     software_version_ = msg.data_[14];
 
@@ -162,63 +163,68 @@ struct mtVersionDataMsg {
 
   void print() {
     printf(
-        "mtVersionDataMsg: node = %#x swVer = %#x infoBits = %#x uid = %#x "
-        "programLength = %d checksum = %d\n",
-        node_, software_version_, info_bits_, uid_, program_length_, checksum_);
+        "mtVersionDataMsg: tx_node_ = %#x software_version_ = %#x info_bits_ = "
+        "%#x uid_ = %#x "
+        "program_length_ = %d checksum_ = %d\n",
+        tx_node_, software_version_, info_bits_, uid_, program_length_,
+        checksum_);
   }
 };
 
 // ######################################################################
 struct mtAliveMsg {
-  static const int type = mtAlive;
-  uint8_t txNode;
-  uint32_t headTime_msec;
-  int motorPos;
+  const MessageID id = mtAlive;
+  uint8_t tx_node_;
+  uint32_t head_time_msec_;
+  int motor_pos_;
 
-  bool inCentre;
-  bool centered;
-  bool motoring;
-  bool motorOn;
-  bool dir;
-  bool inScan;
-  bool noParams;
-  bool sentCfg;
+  // Head Info BitSet
+  bool in_centre_;
+  bool centered_;
+  bool motoring_;
+  bool motor_on_;
+  bool dir_;
+  bool in_scan_;
+  bool no_params_;
+  bool sent_cfg_;
 
-  mtAliveMsg(SonarMessage const& msg) {
+  mtAliveMsg(SonarMessage const &msg) {
     msg.IsByteEqual('@', 1);
     msg.IsByteEqual(mtAlive, 11);
     msg.IsByteEqual(0x80, 12);
 
-    txNode = msg.data_[13];
+    tx_node_ = msg.data_[13];
 
-    headTime_msec = uint32_t(msg.data_[15]) << 0;
-    headTime_msec |= uint32_t(msg.data_[16]) << 8;
-    headTime_msec |= uint32_t(msg.data_[17]) << 16;
-    headTime_msec |= uint32_t(msg.data_[18]) << 24;
+    head_time_msec_ = uint32_t(msg.data_[15]) << 0;
+    head_time_msec_ |= uint32_t(msg.data_[16]) << 8;
+    head_time_msec_ |= uint32_t(msg.data_[17]) << 16;
+    head_time_msec_ |= uint32_t(msg.data_[18]) << 24;
 
-    motorPos = msg.data_[19] << 0;
-    motorPos |= msg.data_[20] << 8;
+    motor_pos_ = msg.data_[19] << 0;
+    motor_pos_ |= msg.data_[20] << 8;
 
-    std::bitset<8> headinf = msg.data_[21];
-    inCentre = headinf[0];
-    centered = headinf[1];
-    motoring = headinf[2];
-    motorOn = headinf[3];
-    dir = headinf[4];
-    inScan = headinf[5];
-    noParams = headinf[6];
-    sentCfg = headinf[7];
+    std::bitset<8> head_info_ = msg.data_[21];
+    in_centre_ = head_info_[0];
+    centered_ = head_info_[1];
+    motoring_ = head_info_[2];
+    motor_on_ = head_info_[3];
+    dir_ = head_info_[4];
+    in_scan_ = head_info_[5];
+    no_params_ = head_info_[6];
+    sent_cfg_ = head_info_[7];
 
     msg.IsByteEqual(0x0A, 22);
   };
 
   void print() {
+    // TODO: ROSINFO or cout?
     printf(
-        "mtAliveMsg: node = %#x headTime_msec = %d motorPos = %d inCentre = %d "
-        "centered = %d motoring = %d motorOn"
-        "= %d dir = %d inScan = %d noParams = %d sentCfg = %d\n",
-        txNode, headTime_msec, motorPos, inCentre, centered, motoring, motorOn,
-        dir, inScan, noParams, sentCfg);
+        "mtAliveMsg: tx_node_ = %#x head_time_msec_ = %d motor_pos_ = %d "
+        "in_centre_ = %d "
+        "centered_ = %d motoring_ = %d motor_on_"
+        "= %d dir_ = %d in_scan_ = %d no_params_ = %d sent_cfg_ = %d\n",
+        tx_node_, head_time_msec_, motor_pos_, in_centre_, centered_, motoring_,
+        motor_on_, dir_, in_scan_, no_params_, sent_cfg_);
   }
 };
 
@@ -237,45 +243,40 @@ static std::vector<uint8_t> mtRebootMsg = {
     0x10,  // mtReBoot
     0x80,  // message_sequence
     0x02,  // node
-    0x0A}; // line_feed
+    0x0A   // line_feed
+};
 
 // ######################################################################
 struct mtHeadCommandMsg {
-  mtHeadCommandMsg(uint16_t _nBins = 200, float _range = 10, float _VOS = 1500,
-                   uint8_t _angleStepSize = 32, int _leftLimit = 1,
-                   int _rightLimit = 6399)
-      : nBins(_nBins),
-        range(_range),
-        VOS(_VOS),
-        angleStepSize(_angleStepSize),
-        leftLimit(_leftLimit),
-        rightLimit(_rightLimit) {}
+  mtHeadCommandMsg(uint16_t n_bins = 200, float range = 10, float vos = 1500,
+                   uint8_t angle_step_size = 32, uint16_t left_limit = 1,
+                   uint16_t right_limit = 6399)
+      : n_bins_(n_bins),
+        range_(range),
+        vos_(vos),
+        angle_step_size_(angle_step_size),
+        left_limit_(left_limit),
+        right_limit_(right_limit) {}
 
-  //! The desired number of bins per scanline
-  uint16_t nBins;
+  uint16_t n_bins_;  // The desired number of bins per scanline
+  float range_;      // The desired range in meters
+  float vos_;        // The velocity of sound in meters per second
+  uint16_t left_limit_;
+  uint16_t right_limit_;
+  // The size of each step of the sonar head
+  /* CrazyLow: 7.2°   = 128
+     VeryLow:  3.6°   = 64
+     Low:      1.8°   = 32
+     Medium:   0.9°   = 16
+     High:     0.45°  = 8
+     Ultimate: 0.225° = 4 */
+  uint8_t angle_step_size_;
 
-  //! The desired range in meters
-  float range;
-
-  //! The velocity of sound in meters per second
-  float VOS;
-
-  int leftLimit;
-  int rightLimit;
-
-  //! The size of each step of the sonar head
-  /*! CrazyLow: 7.2°   = 128
-      VeryLow:  3.6°   = 64
-      Low:      1.8°   = 32
-      Medium:   0.9°   = 16
-      High:     0.45°  = 8
-      Ultimate: 0.225° = 4 */
-  uint8_t angleStepSize;
-
-  //! Construct the message vector from the given parameters
+  // Construct the message vector from the given parameters
   std::vector<uint8_t> construct() {
-    // Notice there is a padded byte at the beginning that we'll need to get rid
-    // of before we return this vector
+    // This is the skeleton message, we overwrite some of those bytes
+    // with our parameters. We start this vector with 0x00 to match the
+    // datasheet bytes numerotation.
     std::vector<uint8_t> msg = {
         0x00, 0x40, 0x30, 0x30, 0x34, 0x43, 0x4C, 0x00, 0xFF, 0x02, 0x47, 0x13,
         0x80, 0x02, 0x1D, 0x01, 0x23, 0x02, 0x99, 0x99, 0x99, 0x02, 0x66, 0x66,
@@ -285,35 +286,35 @@ struct mtHeadCommandMsg {
         0x40, 0x06, 0x01, 0x00, 0x00, 0x00, 0x50, 0x51, 0x09, 0x08, 0x54, 0x54,
         0x00, 0x00, 0x5A, 0x00, 0x7D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
-    uint16_t rangeScale = floor(range * 10 + 0.5);
-    msg[36] = rangeScale & 0x00FF;
-    msg[37] = rangeScale >> 8;
+    uint16_t range_scale = uint16_t(floor(range_ * 10 + 0.5));
+    msg[36] = uint8_t(range_scale & 0x00FF);
+    msg[37] = uint8_t(range_scale >> 8);
 
-    msg[51] = angleStepSize;
+    msg[51] = angle_step_size_;
 
-    uint16_t leftLimGrads = leftLimit;  // std::min(6399, std::max(1,
-                                        // int(leftLimit  /*/ 360.0) * 0.01745 *
-                                        // 16*/)));
-    ROS_INFO_STREAM("leftLimit" << leftLimit);
+    uint16_t left_limit_grads = left_limit_;
 
-    msg[38] = leftLimit & 0x00FF;
-    msg[39] = leftLimit >> 8;
+    msg[38] = uint8_t(left_limit_ & 0x00FF);
+    msg[39] = uint8_t(left_limit_ >> 8);
 
-    uint16_t rightLimGrads = rightLimit;  // std::min(6399, std::max(1,
-                                          // int(rightLimit /*/ 360.0 * 400 *
-                                          // 16*/)));
-    msg[40] = rightLimit & 0x00FF;
-    msg[41] = rightLimit >> 8;
+    uint16_t rightLimGrads = right_limit_;
 
-    msg[54] = nBins & 0x00FF;
-    msg[55] = nBins >> 8;
+    msg[40] = uint8_t(right_limit_ & 0x00FF);
+    msg[41] = uint8_t(right_limit_ >> 8);
 
-    double msPerPing = 1000.0 * (2.0 * range / VOS);
-    double usPerBin = 1000.0 * (msPerPing / double(nBins));
-    uint16_t adInterval = std::floor(usPerBin / 640.0 * 1000.0 + 0.5);
+    msg[54] = uint8_t(n_bins_ & 0x00FF);
+    msg[55] = uint8_t(n_bins_ >> 8);
 
-    msg[52] = adInterval & 0x00FF;
-    msg[53] = adInterval >> 8;
+    // time travel = (2 * range / vos) in milliseconds
+    double time_travel = 1000.0 * (2.0 * range_ / vos_);
+    // sample time = time travel (ms) / number of bins in microseconds
+    double sample_time = 1000.0 * (time_travel / double(n_bins_));
+    // ADInterval = sample time (us) / 640 (us)
+    // Here we round up the value
+    uint16_t ad_interval = uint16_t(std::ceil(sample_time / 640.0 * 1000.0));
+
+    msg[52] = uint8_t(ad_interval & 0x00FF);
+    msg[53] = uint8_t(ad_interval >> 8);
 
     msg.erase(msg.begin());
     return msg;
@@ -321,41 +322,37 @@ struct mtHeadCommandMsg {
 };
 
 // ######################################################################
-static std::vector<uint8_t> mtSendDataMsg = {
-    0x40,  // header
-    0x30,  // hex_length
-    0x30,  // hex_length
-    0x30,  // hex_length
-    0x43,  // hex_length
-    0x0C,  // binairy_length
-    0x00,  // binairy_length
-    0xFF,  // tx_node
-    0x02,  // rx_node
-    0x07,  // n_byte
-    0x19,  // mtSendData
-    0x80,  // message_sequence
-    0x02,  // node
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x0A}; // line_feed
+static std::vector<uint8_t> mtSendDataMsg = {0x40,   // header
+                                             0x30,   // hex_length
+                                             0x30,   // hex_length
+                                             0x30,   // hex_length
+                                             0x43,   // hex_length
+                                             0x0C,   // binairy_length
+                                             0x00,   // binairy_length
+                                             0xFF,   // tx_node
+                                             0x02,   // rx_node
+                                             0x07,   // n_byte
+                                             0x19,   // mtSendData
+                                             0x80,   // message_sequence
+                                             0x02,   // node
+                                             0x00,   // current_time
+                                             0x00,   // current_time
+                                             0x00,   // current_time
+                                             0x00,   // current_time
+                                             0x0A};  // line_feed
 
 // ######################################################################
 struct mtHeadDataMsg {
-  uint8_t packetSequence;  //!< If this is part of a multi-packet sequence,
-  // which packet is this?
-  bool isLastInSequence;  //!< Is this the last packet in the sequence?
-  uint8_t txNode;
+  uint8_t packet_sequence_;   // If this is part of a multi-packet sequence
+                              // which packet is this?
+  bool is_last_in_sequence_;  // Is this the last packet in the sequence?
+  uint8_t tx_node_;
 
   //! Head Status Data
-  /*! {@ */
-  bool hdPwrLoss;           //!< Head is in reset condition
-  bool motorErr;            //!< Motor has lost sync, re-send parameters.
-  bool dataRangeis0to80db;  //!< When in 8-bit adc datamode, data is 0..255 =
-  // 0..80db
-  bool messageAppended;  //!< Message appended after last packet data reply
-  /*! @}*/
+  bool head_power_loss_;  // Head is in reset condition
+  bool motor_error_;      // Motor has lost sync, re-send parameters.
+  bool data_range_;  // When in 8-bit adc datamode, data is 0..255 = 0..80db
+  bool message_appended_;  // Message appended after last packet data reply
 
   enum sweepCode_t {
     Scanning_Normal,
@@ -363,56 +360,58 @@ struct mtHeadDataMsg {
     Scan_AtRightLimit,
     Scan_AtCentre
   };
-  sweepCode_t sweepCode;
+  sweepCode_t sweep_code_;
 
-  //! Head Control
-  /*! @{ */
+  // Head Control
   struct headControl_t {
-    bool adc8on;
-    bool cont;
-    bool scanright;
-    bool invert;
-    bool motoroff;
-    bool txoff;
-    bool spare;
-    bool chan2;
-    bool raw;
-    bool hasMotor;
-    bool applyOffset;
-    bool pingPong;
-    bool starteLLim;
-    bool replyASL;
-    bool replyThr;
-    bool ignoreSensor;
-  } headControl;
-  /*! @} */
+    bool adc8on_;        // Default = 0 = 4-bit packed data.
+    bool cont_;          // Default = 0 = Sector Scanning.
+    bool scan_right_;    // Default = 0 = ScanLeft.
+    bool invert_;        // Default = 0 = Sonar mounted upright, transducer boot
+                         // pointing up.
+    bool motor_off_;     // Default = 0 = motor is enabled.
+    bool tx_off_;        // Default = 0 = sonar transmitter is enabled.
+    bool spare_;         // Default = 0 = Always.
+    bool chan2_;         // Default = 0 = LF channel. Always = 0 for
+                         // SeaPrince/MiniKing Sonars.
+    bool raw_;           // Default = 1 = Always.
+    bool has_motor_;     // Default for Sonar = 1 = sonar has motor.
+    bool apply_offset_;  // Default = 0 = Do not apply Heading Offsets.
+    bool ping_pong_;     // Default for scanning sonar = 0, Default for
+                         // Sidescan sonar = 1.
+    bool stare_left_limit_;  // Default = 0 = Don’t "Stare" in fixed direction.
+    bool reply_asl_;         // Default = 1 = Always for Sonar.
+    bool reply_thr_;         // Default = 0 = Always.
+    bool ignore_sensor_;     // Default = 0 = Always, 1 in emergencies.
+  };
+  headControl_t head_control_;
 
-  float rangeScale;
+  float ranges_scale_;
   enum rangeUnits_t { meters = 0, feet = 1, fathoms = 2, yards = 3 };
-  rangeUnits_t rangeUnits;
+  rangeUnits_t range_units_;
 
-  float stepSize_degrees;
-  float bearing_degrees;  //!< The current bearing of the sonar head
+  float step_size_degrees_;
+  float bearing_degrees_;  //!< The current bearing of the sonar head
 
   std::vector<uint8_t> scanLine;
 
   void print() {
     std::cout << "mtHeadDataMsg: " << std::endl;
-    std::cout << "   packetInSequence: " << int(packetSequence) << std::endl;
-    std::cout << "   isLast?: " << isLastInSequence << std::endl;
-    std::cout << "   Error?: " << motorErr << std::endl;
-    std::cout << "   Sweep Code: " << sweepCode << std::endl;
-    std::cout << "   Adc8on?: " << headControl.adc8on << std::endl;
-    std::cout << "   Continuos Scan?: " << headControl.cont << std::endl;
-    std::cout << "   scanright?: " << headControl.scanright << std::endl;
-    std::cout << "   invert?: " << headControl.invert << std::endl;
-    std::cout << "   motoff?: " << headControl.motoroff << std::endl;
-    std::cout << "   txoff?: " << headControl.txoff << std::endl;
-    std::cout << "   spare?: " << headControl.spare << std::endl;
-    std::cout << "   Range Scale: " << rangeScale << std::endl;
-    std::cout << "   Range Scale Units: " << rangeUnits << std::endl;
-    std::cout << "   Step Size (degrees): " << stepSize_degrees << std::endl;
-    std::cout << "   Current Bearing (degrees): " << bearing_degrees
+    std::cout << "   packetInSequence: " << int(packet_sequence_) << std::endl;
+    std::cout << "   isLast?: " << is_last_in_sequence_ << std::endl;
+    std::cout << "   Error?: " << motor_error_ << std::endl;
+    std::cout << "   Sweep Code: " << sweep_code_ << std::endl;
+    std::cout << "   Adc8on?: " << head_control_.adc8on_ << std::endl;
+    std::cout << "   Continuos Scan?: " << head_control_.cont_ << std::endl;
+    std::cout << "   scanright?: " << head_control_.scan_right_ << std::endl;
+    std::cout << "   invert?: " << head_control_.invert_ << std::endl;
+    std::cout << "   motoff?: " << head_control_.motor_off_ << std::endl;
+    std::cout << "   txoff?: " << head_control_.tx_off_ << std::endl;
+    std::cout << "   spare?: " << head_control_.spare_ << std::endl;
+    std::cout << "   Range Scale: " << ranges_scale_ << std::endl;
+    std::cout << "   Range Scale Units: " << range_units_ << std::endl;
+    std::cout << "   Step Size (degrees): " << step_size_degrees_ << std::endl;
+    std::cout << "   Current Bearing (degrees): " << bearing_degrees_
               << std::endl;
 
     std::cout << "   Scanline size: " << scanLine.size() << std::endl;
@@ -423,98 +422,89 @@ struct mtHeadDataMsg {
     // std::cout << "]" << std::endl;
   }
 
-  mtHeadDataMsg(SonarMessage const& msg) {
-    //			if(msg.count == 0)
-    //			{
-    //				std::cerr << "Your sonar is sending multi-packet data! This
-    //driver
-    // does not support this format. Please "
-    //				"reconfigure your device to send data in single-packet mode."
-    //<<
-    // std::endl;
-    //				return;
-    //			}
-
+  mtHeadDataMsg(SonarMessage const &msg) {
     msg.IsByteEqual('@', 1);
     msg.IsByteEqual(mtHeadData, 11);
-    uint8_t const msgSequenceBitset = msg.data_[12];
-    packetSequence = msgSequenceBitset & 0xEF;
-    isLastInSequence = msgSequenceBitset & 0x80;
 
-    std::bitset<8> headStatus = msg.data_[17];
-    hdPwrLoss = headStatus[0];
-    motorErr = headStatus[1];
-    dataRangeis0to80db = headStatus[4];
-    messageAppended = headStatus[7];
+    uint8_t msg_sequence = msg.data_[12];
+    packet_sequence_ = msg_sequence & uint8_t(0xEF);
+    is_last_in_sequence_ = msg_sequence & uint8_t(0x80);
+
+    std::bitset<8> head_status = msg.data_[17];
+    head_power_loss_ = head_status[0];
+    motor_error_ = head_status[1];
+    data_range_ = head_status[4];
+    message_appended_ = head_status[7];
 
     switch (msg.data_[18]) {
       case 0:
-        sweepCode = Scanning_Normal;
+        sweep_code_ = Scanning_Normal;
         break;
       case 1:
-        sweepCode = Scan_AtLeftLimit;
+        sweep_code_ = Scan_AtLeftLimit;
         break;
       case 2:
-        sweepCode = Scan_AtRightLimit;
+        sweep_code_ = Scan_AtRightLimit;
         break;
       case 5:
-        sweepCode = Scan_AtCentre;
+        sweep_code_ = Scan_AtCentre;
         break;
       default:
-        std::cerr << __FUNCTION__ << ":" << __LINE__
-                  << " - Unknown Sweep Code (" << msg.data_[18] << ")"
+        std::cerr << "Unknown Sweep Code (" << msg.data_[18] << ")"
                   << std::endl;
         break;
     }
 
-    std::bitset<16> headCtrl = msg.data_[19] | (uint16_t(msg.data_[20]) << 8);
-    headControl.adc8on = headCtrl[0];
-    headControl.cont = headCtrl[1];
-    headControl.scanright = headCtrl[2];
-    headControl.invert = headCtrl[3];
-    headControl.motoroff = headCtrl[4];
-    headControl.txoff = headCtrl[5];
-    headControl.spare = headCtrl[6];
-    headControl.chan2 = headCtrl[7];
-    headControl.raw = headCtrl[8];
-    headControl.hasMotor = headCtrl[9];
-    headControl.applyOffset = headCtrl[10];
-    headControl.pingPong = headCtrl[11];
-    headControl.starteLLim = headCtrl[12];
-    headControl.replyASL = headCtrl[13];
-    headControl.replyThr = headCtrl[14];
-    headControl.ignoreSensor = headCtrl[15];
+    std::bitset<16> head_control =
+        msg.data_[19] | (uint16_t(msg.data_[20]) << 8);
+    head_control_.adc8on_ = head_control[0];
+    head_control_.cont_ = head_control[1];
+    head_control_.scan_right_ = head_control[2];
+    head_control_.invert_ = head_control[3];
+    head_control_.motor_off_ = head_control[4];
+    head_control_.tx_off_ = head_control[5];
+    head_control_.spare_ = head_control[6];
+    head_control_.chan2_ = head_control[7];
+    head_control_.raw_ = head_control[8];
+    head_control_.has_motor_ = head_control[9];
+    head_control_.apply_offset_ = head_control[10];
+    head_control_.ping_pong_ = head_control[11];
+    head_control_.stare_left_limit_ = head_control[12];
+    head_control_.reply_asl_ = head_control[13];
+    head_control_.reply_thr_ = head_control[14];
+    head_control_.ignore_sensor_ = head_control[15];
 
-    rangeScale =
+    ranges_scale_ =
         ((uint16_t(msg.data_[21]) | (uint16_t(msg.data_[22]) << 8)) & 0xC0FF) /
         10;
-    uint8_t rangeTp = uint8_t(msg.data_[22]) >> 6;
-    switch (rangeTp) {
+    uint8_t range_unit = uint8_t(msg.data_[22]) >> 6;
+    switch (range_unit) {
       case 0:
-        rangeUnits = meters;
+        range_units_ = meters;
         break;
       case 1:
-        rangeUnits = feet;
+        range_units_ = feet;
         break;
       case 2:
-        rangeUnits = fathoms;
+        range_units_ = fathoms;
         break;
       case 3:
-        rangeUnits = yards;
+        range_units_ = yards;
         break;
       default:
-        std::cerr << __FUNCTION__ << ":" << __LINE__
-                  << " - Unknown range units Code (" << (int)rangeTp << ")"
+        std::cerr << "Unknown range units Code (" << (int)range_unit << ")"
                   << std::endl;
         break;
     }
 
-    stepSize_degrees = msg.data_[40] / 16.0 * 180.0 / 200.0;
-    bearing_degrees = (uint16_t(msg.data_[41]) | (uint16_t(msg.data_[42]) << 8)) /
-                      16.0 * 180.0 / 200.0;
+    step_size_degrees_ = msg.data_[40] / 16.0 * 180.0 / 200.0;
+    bearing_degrees_ =
+        (uint16_t(msg.data_[41]) | (uint16_t(msg.data_[42]) << 8)) / 16.0 *
+        180.0 / 200.0;
 
-    uint16_t dbytes = (uint16_t(msg.data_[43]) | (uint16_t(msg.data_[44]) << 8));
-    if (headControl.adc8on) {
+    uint16_t dbytes =
+        (uint16_t(msg.data_[43]) | (uint16_t(msg.data_[44]) << 8));
+    if (head_control_.adc8on_) {
       scanLine.resize(dbytes);
       if (scanLine.size() != msg.data_.size() - 46) {
         std::cerr << __FUNCTION__ << ":" << __LINE__

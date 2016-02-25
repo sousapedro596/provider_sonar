@@ -31,8 +31,9 @@ namespace provider_sonar {
 
 //------------------------------------------------------------------------------
 //
-SonarDriver::SonarDriver(uint16_t _nBins, float _range, float _VOS, uint8_t _angleStepSize,
-                         int _leftLimit, int _rightLimit, bool debugMode)
+SonarDriver::SonarDriver(uint16_t _nBins, float _range, float _VOS,
+                         uint8_t _angleStepSize, int _leftLimit,
+                         int _rightLimit, bool debugMode)
     : hasHeardMtAlive(false),
       hasHeardMtVersionData(false),
       hasHeardMtHeadData(false),
@@ -111,8 +112,8 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, angle_step_size_, left_limit_,
-                                  right_limit_);
+  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, angle_step_size_,
+                                  left_limit_, right_limit_);
   serial_.writeVector(headCommandMsg.construct());
 }
 
@@ -173,7 +174,7 @@ void SonarDriver::ProcessingThreadMethod() {
           }
           if (its_debug_mode_)
             std::cout << "----------Received mtAlive----Case 1------"
-                << std::endl;
+                      << std::endl;
           state_ = versionData;
           break;
         case versionData:  // Waiting for MtVersion Data
@@ -183,7 +184,7 @@ void SonarDriver::ProcessingThreadMethod() {
           }
           if (its_debug_mode_)
             std::cout << "----------Received mtVersionData----Case 2------"
-                << std::endl;
+                      << std::endl;
           state_ = waitingforMtAlive_2;
           break;
         case waitingforMtAlive_2:  // Waiting for MtAlive
@@ -191,7 +192,7 @@ void SonarDriver::ProcessingThreadMethod() {
           while (!hasHeardMtAlive) sleep(1);
           if (its_debug_mode_)
             std::cout << "----------Received mtAlive----Case 3------"
-                << std::endl;
+                      << std::endl;
           if (hasParams) {
             state_ = scanning;
           } else {
@@ -201,7 +202,7 @@ void SonarDriver::ProcessingThreadMethod() {
         case configuring:  // Configure the Sonar
           if (its_debug_mode_)
             std::cout << "----------Configuring Sonar----Case 4------"
-                << std::endl;
+                      << std::endl;
           Configure();
           if (its_debug_mode_) std::cout << "Changing to State 3" << std::endl;
           sleep(5);
@@ -213,7 +214,7 @@ void SonarDriver::ProcessingThreadMethod() {
             firstSemaphore = red;
             if (its_debug_mode_)
               std::cout << "----------Scanning: ...   ----Case 5------"
-                  << std::endl;
+                        << std::endl;
             sleep(1);
             serial_.writeVector(mtSendDataMsg);
           }
@@ -277,7 +278,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       return;
     } else if (its_debug_mode_)
       std::cout << " bogus byte: " << std::hex << int(byte)
-          << std::dec;  //<< std::endl;
+                << std::dec;  //<< std::endl;
   }
   // std::cout << std::endl;
 
@@ -292,7 +293,8 @@ void SonarDriver::ProcessByte(uint8_t byte) {
     if (its_raw_msg_.size() == 8) {
       its_msg_.binary_length_ |= uint16_t(byte) << 8;
       if (its_msg_.binary_length_ > 1000) {
-        if (its_debug_mode_) std::cout << " Message length too big!" << std::endl;
+        if (its_debug_mode_)
+          std::cout << " Message length too big!" << std::endl;
         ResetMessage();
       }
       return;
@@ -329,7 +331,8 @@ void SonarDriver::ProcessByte(uint8_t byte) {
         ProcessMessage(its_msg_);
         ResetMessage();
       } else {
-        if (its_debug_mode_) std::cout << " Message finished, but no LF detected!";
+        if (its_debug_mode_)
+          std::cout << " Message finished, but no LF detected!";
         ResetMessage();
         return;
       }
@@ -346,16 +349,16 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
 
     if (its_debug_mode_)
       std::cout << std::endl
-          << "Received mtVersionData Message" << std::endl;
+                << "Received mtVersionData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
   } else if (msg.id_ == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     hasHeardMtAlive = true;
-    hasParams = !parsedMsg.noParams;
+    hasParams = !parsedMsg.no_params_;
 
     if (its_debug_mode_)
       std::cout << std::endl
-          << "Received mtAlive Message" << std::endl;
+                << "Received mtAlive Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
   } else if (msg.id_ == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
@@ -388,12 +391,12 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
 
     if (its_debug_mode_)
       std::cout << std::endl
-          << "Received mtHeadData Message" << std::endl;
+                << "Received mtHeadData Message" << std::endl;
     if (its_debug_mode_) parsedMsg.print();
   } else if (msg.id_ == mtBBUserData) {
     if (its_debug_mode_)
       std::cout << std::endl
-          << "Received mtBBUserData Message" << std::endl;
+                << "Received mtBBUserData Message" << std::endl;
   } else {
     std::cerr << "Unhandled Message Type: " << msg.id_ << std::endl;
   }

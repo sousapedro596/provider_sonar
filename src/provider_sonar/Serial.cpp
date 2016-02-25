@@ -760,7 +760,7 @@ void SerialPort::flush(void) {
 void SerialPort::perror(void) {
   switch (serialErrno) {
     case serialErrSuccess:
-      printf("ERROR: SerialPort::OK\n");
+      printf("INFO: SerialPort::OK\n");
       return;
     case serialErrOpenNoTty:
       printf("ERROR: SerialPort::Open() No TTY Failed\n");
