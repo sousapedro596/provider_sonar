@@ -94,7 +94,8 @@ class ProviderSonarNode {
   ros::NodeHandlePtr nh_;
   ros::Publisher scan_line_pub_;  // Create publisher for the sonar scanlines
   // Create a service server to allow dynamic reconfiguration of the sonar
-  ros::ServiceServer reconfigserver;
+  ros::ServiceServer reconfig_server_;
+
   // Sonar parameters: Will be read from parameter server.
   std::string frame_id_;
   std::string port_;

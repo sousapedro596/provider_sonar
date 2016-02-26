@@ -1,8 +1,8 @@
-uint16 nbins 
-uint8 range
+uint16 n_bins
+float64 range
 float64 vos
-uint16 angle_step_size
-uint32 leftLimit
-uint32 rightLimit
+uint8 step_angle_size
+uint16 left_limit
+uint16 right_limit
 ---
 int8 result

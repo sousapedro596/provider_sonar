@@ -18,8 +18,45 @@
 //
 // ######################################################################
 
-#ifndef TRITECHMICRON_MESSAGETYPES_H
-#define TRITECHMICRON_MESSAGETYPES_H
+/**
+ * \file	sonar_messages.h
+ * \author  Francis Masse <francis.masse05@gmail.com>
+ * \date	26/02/2016
+ *
+ * \copyright Copyright (c) 2016 Copyright
+ *
+ * \section LICENSE http://www.gnu.org/licenses/gpl-3.0.en.html
+ *
+ * Changes by: S.O.N.I.A.
+ * \copyright Copyright (c) 2016 S.O.N.I.A. All rights reserved.
+ *
+ * \section LICENSE
+ *
+ * This file is part of S.O.N.I.A. software.
+ *
+ * S.O.N.I.A. software is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * S.O.N.I.A. software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with S.O.N.I.A. software. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * \section contribution
+ *
+ * A special thanks to Randolph Voorhies to strongly inspire us in the
+ * developement of this file.
+ *
+ * Copyright (C) 2011  Randolph Voorhies
+ */
+
+#ifndef PROVIDER_SONAR_SONAR_MESSAGES_H
+#define PROVIDER_SONAR_SONAR_MESSAGES_H
 
 #include <provider_sonar/sonar_driver.h>
 #include "messages_id.h"
@@ -32,6 +69,9 @@
 namespace provider_sonar {
 
 struct SonarMessage {
+  //============================================================================
+  // P U B L I C   M E M B E R S
+
   uint8_t header;
   uint32_t hex_length;
   uint16_t binary_length;
@@ -44,6 +84,11 @@ struct SonarMessage {
   std::vector<uint8_t> data;
   uint8_t line_feed;
 
+  //==============================================================================
+  // C / D T O R S   S E C T I O N
+
+  //------------------------------------------------------------------------------
+  //
   SonarMessage() {
     header = 0;
     hex_length = 0;
@@ -58,6 +103,11 @@ struct SonarMessage {
     line_feed = 0;
   }
 
+  //============================================================================
+  // P U B L I C   M E T H O D S
+
+  //------------------------------------------------------------------------------
+  //
   bool LenghtCheck(uint8_t length) const {
     if (data.size() != length) {
       std::cerr << "Invalid message length (" << data.size() << " != " << length
@@ -67,6 +117,8 @@ struct SonarMessage {
     return true;
   }
 
+  //------------------------------------------------------------------------------
+  //
   bool IdCheck(MessageID id) const {
     if (id != this->id) {
       std::cerr << "Invalid message type (" << id << " != " << id << ")"
@@ -76,6 +128,8 @@ struct SonarMessage {
     return true;
   }
 
+  //------------------------------------------------------------------------------
+  //
   bool IsByteEqual(uint8_t byte, uint8_t at) const {
     if (data.size() < at) {
       std::cerr << "Message too short" << std::endl;
@@ -131,6 +185,9 @@ static std::vector<uint8_t> mtSendVersionMsg = {
 //------------------------------------------------------------------------------
 //
 struct mtVersionDataMsg {
+  //============================================================================
+  // P U B L I C   M E M B E R S
+
   const MessageID id = mtVersionData;
   uint8_t tx_node;
   uint8_t software_version;
@@ -139,6 +196,11 @@ struct mtVersionDataMsg {
   uint32_t program_length;
   uint16_t checksum;
 
+  //============================================================================
+  // P U B L I C   M E T H O D S
+
+  //------------------------------------------------------------------------------
+  //
   mtVersionDataMsg(SonarMessage const &msg) {
     msg.LenghtCheck(26);
     msg.IdCheck(mtVersionData);
@@ -165,6 +227,8 @@ struct mtVersionDataMsg {
     msg.IsByteEqual(0x0A, 25);
   }
 
+  //------------------------------------------------------------------------------
+  //
   void print() {
     printf(
         "mtVersionDataMsg: tx_node_ = %#x software_version_ = %#x info_bits_ = "
@@ -177,6 +241,9 @@ struct mtVersionDataMsg {
 //------------------------------------------------------------------------------
 //
 struct mtAliveMsg {
+  //============================================================================
+  // P U B L I C   M E M B E R S
+
   const MessageID id = mtAlive;
   uint8_t tx_node;
   uint32_t head_time_msec;
@@ -192,6 +259,11 @@ struct mtAliveMsg {
   bool no_params;
   bool sent_cfg;
 
+  //============================================================================
+  // P U B L I C   M E T H O D S
+
+  //------------------------------------------------------------------------------
+  //
   mtAliveMsg(SonarMessage const &msg) {
     msg.IsByteEqual('@', 1);
     msg.IsByteEqual(mtAlive, 11);
@@ -220,6 +292,8 @@ struct mtAliveMsg {
     msg.IsByteEqual(0x0A, 22);
   };
 
+  //------------------------------------------------------------------------------
+  //
   void print() {
     // TODO: ROSINFO or cout?
     printf(
@@ -254,6 +328,11 @@ static std::vector<uint8_t> mtRebootMsg = {
 //------------------------------------------------------------------------------
 //
 struct mtHeadCommandMsg {
+  //==============================================================================
+  // C / D T O R S   S E C T I O N
+
+  //------------------------------------------------------------------------------
+  //
   mtHeadCommandMsg(uint16_t n_bins = 200, float range = 10, float vos = 1500,
                    uint8_t angle_step_size = 32, uint16_t left_limit = 1,
                    uint16_t right_limit = 6399)
@@ -263,6 +342,9 @@ struct mtHeadCommandMsg {
         step_angle_size(angle_step_size),
         left_limit(left_limit),
         right_limit(right_limit) {}
+
+  //============================================================================
+  // P U B L I C   M E M B E R S
 
   uint16_t n_bins;  // The desired number of bins per scanline
   float range;      // The desired range in meters
@@ -277,6 +359,9 @@ struct mtHeadCommandMsg {
      High:     0.45°  = 8
      Ultimate: 0.225° = 4 */
   uint8_t step_angle_size;
+
+  //============================================================================
+  // P U B L I C   M E T H O D S
 
   // Construct the message vector from the given parameters
   std::vector<uint8_t> construct() {
@@ -430,10 +515,9 @@ struct mtHeadDataMsg {
 
     std::cout << "   Scanline size: " << scanline.size() << std::endl;
 
-    // std::cout << "   Scanline [ ";
-    // for(uint8_t c : scanLine)
-    //	std::cout << int(c) << " ";
-    // std::cout << "]" << std::endl;
+    std::cout << "   Scanline [";
+    for (uint8_t c : scanline) std::cout << std::hex << static_cast<int>(c);
+    std::cout << "]" << std::endl;
   }
 
   mtHeadDataMsg(SonarMessage const &msg) {
@@ -519,6 +603,7 @@ struct mtHeadDataMsg {
 
     uint16_t data_bytes =
         (uint16_t(msg.data[43]) | (uint16_t(msg.data[44]) << 8));
+    std::cout << "data_bytes = : " << data_bytes << std::endl;
 
     // If adc8on = 1, data_bytes = n_bin
     // Else, data_bytes = n_bin / 2
@@ -532,35 +617,25 @@ struct mtHeadDataMsg {
         return;
       }
 
-      scanline = msg.data;
-      for (size_t i = 0; i < scanline.size(); ++i)
-        std::cout << "vector = : " << scanline[i];
-
-      //      std::copy(msg.data.begin(), msg.data.end(), scanline);
-      //      for (size_t i = 0; i < scanline.size(); ++i)
-      //        std::cout << "std:copy : " << scanline[i];
-
+      // Copy msg.data to scanline vector
       for (size_t i = 0; i < scanline.size(); ++i)
         scanline[i] = msg.data.at(i + 45);
-      for (size_t i = 0; i < scanline.size(); ++i)
-        std::cout << "for loop : " << scanline[i];
 
     } else {
       scanline.resize(static_cast<size_t>(data_bytes * 2));
       if (scanline.size() != msg.data.size() / 2 - 46) {
-        std::cerr << __FUNCTION__ << ":" << __LINE__
-                  << " - scanLine appears to be mis-sized.  Size is "
+        std::cerr << "ScanLine appears to be mis-sized.  Size is "
                   << scanline.size() << ", but should be "
                   << msg.data.size() - 46 << std::endl;
         return;
       }
-      std::cerr << __FUNCTION__ << ":" << __LINE__
-                << " - Your device is transmitting in packed 4-bit mode. This "
+      std::cerr << "Your device is transmitting in packed 4-bit mode. This "
                    "is not yet supported." << std::endl;
       return;
     }
   }
 };
-}
 
-#endif  // TRITECHMICRON_MESSAGETYPES_H
+}  // namespace provider_sonar
+
+#endif  // PROVIDER_SONAR_SONAR_MESSAGES_H

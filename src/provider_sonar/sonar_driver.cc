@@ -31,17 +31,26 @@ namespace provider_sonar {
 
 //------------------------------------------------------------------------------
 //
-SonarDriver::SonarDriver(uint16_t _nBins, float _range, float _VOS,
-                         uint8_t _angleStepSize, int _leftLimit,
-                         int _rightLimit, bool debugMode)
-    : hasHeardMtAlive(false),
-      hasHeardMtVersionData(false),
-      hasHeardMtHeadData(false),
-      its_debug_mode_(debugMode),
+SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
+                         uint8_t angle_step_size, uint16_t left_limit,
+                         uint16_t right_limit, bool debug_mode)
+    : its_serial_thread_(),
+      its_processing_thread_(),
+      its_state_(WaitingForAt),
       state_machine_semaphore_(green),
-      state_(waitingforMtAlive_1) {
+      scanning_callback_semaphore_(green),
+      state_(waitingforMtAlive_1),
+      its_raw_msg_(),
+      its_msg_(),
+      has_heard_mtAlive_(false),
+      has_heard_mtVersionData_(false),
+      has_heard_mtHeadData_(false),
+      has_params_(false),
+      serial_(),
+      its_running_(false),
+      its_debug_mode_(debug_mode) {
   ResetMessage();
-  SetParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
+  SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit);
 }
 
 //------------------------------------------------------------------------------
@@ -57,39 +66,39 @@ void SonarDriver::Disconnect() {
   std::cout << "Disconnecting" << std::endl;
   its_running_ = false;
   if (its_serial_thread_.joinable()) {
-    std::cout << "Joining...";
+    std::cout << "Joining..." << std::endl;
     try {
       its_serial_thread_.detach();
-    } catch (...) { /*screw you!*/
+    } catch (...) {
+      std::cerr << "Caught Exception" << std::endl;
     }
-    std::cout << "Joined";
+    std::cout << "Joined" << std::endl;
   }
-
   std::cout << "Disconnected" << std::endl;
 }
 
 //------------------------------------------------------------------------------
 //
-void SonarDriver::SetParameters(uint16_t _nBins, float _range, float _VOS,
-                                uint8_t _angleStepSize, int _leftLimit,
-                                int _rightLimit) {
-  n_bins_ = _nBins;
-  range_ = _range;
-  vos_ = _VOS;
-  angle_step_size_ = _angleStepSize;
-  left_limit_ = _leftLimit;
-  right_limit_ = _rightLimit;
+void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
+                                uint8_t angle_step_size, uint16_t left_limit,
+                                uint16_t right_limit) {
+  n_bins_ = n_bins;
+  range_ = range;
+  vos_ = vos;
+  angle_step_size_ = angle_step_size;
+  left_limit_ = left_limit;
+  right_limit_ = right_limit;
 }
 
 //------------------------------------------------------------------------------
 //
 bool SonarDriver::Connect(std::string const &devName) {
-  if (its_debug_mode_) std::cout << "Connecting...";
+  if (its_debug_mode_) std::cout << "Connecting..." << std::endl;
 
   serial_.flush();
 
-  bool connectionSuccess = serial_.connect(devName, 115200);
-  if (!connectionSuccess) {
+  bool connection_success = serial_.connect(devName, 115200);
+  if (!connection_success) {
     std::cerr << "Could not connect to serial port!" << std::endl;
     return false;
   }
@@ -119,11 +128,11 @@ void SonarDriver::Configure() {
 
 //------------------------------------------------------------------------------
 //
-void SonarDriver::Reconfigure(uint16_t _nBins, float _range, float _VOS,
-                              uint8_t _angleStepSize, int _leftLimit,
-                              int _rightLimit) {
+void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
+                              uint8_t step_angle_size, uint16_t left_limit,
+                              uint16_t right_limit) {
   // Load the new values
-  SetParameters(_nBins, _range, _VOS, _angleStepSize, _leftLimit, _rightLimit);
+  SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   state_machine_semaphore_ = red;
@@ -168,7 +177,7 @@ void SonarDriver::ProcessingThreadMethod() {
       // std::cout << "In loop: " <<std::endl;
       switch (state_) {
         case waitingforMtAlive_1:  // Waiting for MtAlive
-          while (!hasHeardMtAlive) {
+          while (!has_heard_mtAlive_) {
             sleep(1);
             std::cout << "Waiting: " << std::endl;
           }
@@ -178,7 +187,7 @@ void SonarDriver::ProcessingThreadMethod() {
           state_ = versionData;
           break;
         case versionData:  // Waiting for MtVersion Data
-          while (!hasHeardMtVersionData) {
+          while (!has_heard_mtVersionData_) {
             serial_.writeVector(mtSendVersionMsg);
             sleep(1);
           }
@@ -188,12 +197,12 @@ void SonarDriver::ProcessingThreadMethod() {
           state_ = waitingforMtAlive_2;
           break;
         case waitingforMtAlive_2:  // Waiting for MtAlive
-          hasHeardMtAlive = false;
-          while (!hasHeardMtAlive) sleep(1);
+          has_heard_mtAlive_ = false;
+          while (!has_heard_mtAlive_) sleep(1);
           if (its_debug_mode_)
             std::cout << "----------Received mtAlive----Case 3------"
                       << std::endl;
-          if (hasParams) {
+          if (has_params_) {
             state_ = scanning;
           } else {
             state_ = configuring;
@@ -230,15 +239,15 @@ void SonarDriver::ProcessingThreadMethod() {
             usleep(100000);
           }
 
-          if (hasHeardMtHeadData) {
+          if (has_heard_mtHeadData_) {
             waitedPeriods = 0;
-            hasHeardMtHeadData = false;
+            has_heard_mtHeadData_ = false;
           }
           break;
 
           // Transition to configuring in case the sonar reports lacking
           // parameters
-          if (!hasParams) {
+          if (!has_params_) {
             state_ = configuring;
           }
       }

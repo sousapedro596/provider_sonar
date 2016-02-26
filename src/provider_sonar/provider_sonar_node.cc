@@ -45,12 +45,12 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandle &nh) {
   if (!simulate_) {
     scan_line_pub_ = nh.advertise<ScanLineMsgType>("scan_line", 100);
 
-    driver_ = new SonarDriver(num_bins_, range_, velocity_of_sound_,
-                              angle_step_size_, leftLimit_, rightLimit_,
-                              use_debug_mode);
+    driver_ =
+        new SonarDriver(num_bins_, range_, velocity_of_sound_, angle_step_size_,
+                        leftLimit_, rightLimit_, use_debug_mode);
 
-    reconfigserver = nh.advertiseService("Sonar_Reconfiguration",
-                                         &ProviderSonarNode::Reconfig, this);
+    reconfig_server_ = nh.advertiseService("Sonar_Reconfiguration",
+                                           &ProviderSonarNode::Reconfig, this);
 
     driver_->RegisterScanLineCallback(
         std::bind(&ProviderSonarNode::Publish, this, std::placeholders::_1,
@@ -83,9 +83,8 @@ ProviderSonarNode::~ProviderSonarNode() {
 bool ProviderSonarNode::Reconfig(
     provider_sonar::sonar_reconfig::Request &req,
     provider_sonar::sonar_reconfig::Response &resp) {
-  driver_->Reconfigure(req.nbins, req.range, req.vos, req.angle_step_size,
-                       req.leftLimit, req.rightLimit);
-
+  driver_->Reconfigure(req.n_bins, req.range, req.vos, req.step_angle_size,
+                       req.left_limit, req.right_limit);
   return true;
 }
 

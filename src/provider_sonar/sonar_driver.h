@@ -37,19 +37,21 @@ class SonarDriver {
   // T Y P E D E F   A N D   E N U M
 
   using Ptr = std::shared_ptr<SonarDriver>;
+  using ConstPtr = std::shared_ptr<const SonarDriver>;
+  using PtrList = std::vector<SonarDriver::Ptr>;
+  using ConstPtrList = std::vector<SonarDriver::ConstPtr>;
 
   // Current state of the incoming protocol FSM
   enum StateType {
     WaitingForAt = 0,  // Waiting for an @ to appear
-    ReadingHeader = 1,  // The @ sign has been found, now we're reading the header data
-    ReadingData = 2  // The header has been read, now we're just reading the data
+    ReadingHeader =
+        1,  // The @ sign has been found, now we're reading the header data
+    ReadingData =
+        2  // The header has been read, now we're just reading the data
   };
 
   // Semaphore type
-  enum Semaphore {
-    red,
-    green
-  };
+  enum Semaphore { red, green };
 
   // States for the protocol state machine
   enum StateMachineStates {
@@ -64,8 +66,9 @@ class SonarDriver {
   //==========================================================================
   // P U B L I C   C / D T O R S
 
-  SonarDriver(uint16_t _nBins, float _range, float _VOS, uint8_t _angleStepSize,
-              int _leftLimit, int _rightLimit, bool debugMode = true);
+  SonarDriver(uint16_t n_bins, float range, float vos, uint8_t angle_step_size,
+              uint16_t left_limit, uint16_t rigth_limit,
+              bool debug_mode = true);
 
   ~SonarDriver();
 
@@ -86,8 +89,9 @@ class SonarDriver {
 
   // This function allows the user to reconfigure the sonar once it is running
   // without restarting the driver
-  void Reconfigure(uint16_t _nBins, float _range, float _VOS,
-                   uint8_t _angleStepSize, int _leftLimit, int _rightLimit);
+  void Reconfigure(uint16_t n_bins, float range, float vos,
+                   uint8_t step_angle_size, uint16_t left_limit,
+                   uint16_t right_limit);
 
   //! Get access to the scan lines that have been read by the sonar.
   /*! Note that this method is thread safe and will lock the internal scan
@@ -101,8 +105,9 @@ class SonarDriver {
 
  private:
   // This function sets the necessary parameters for the Sonar operation.
-  void SetParameters(uint16_t _nBins, float _range, float _VOS,
-                     uint8_t _angleStepSize, int _leftLimit, int _rightLimit);
+  void SetParameters(uint16_t n_bins, float range, float vos,
+                     uint8_t angle_step_size, uint16_t left_limit,
+                     uint16_t right_limit);
 
   // Process a single incoming byte (add it onto itsRawMsg, etc.)
   void ProcessByte(uint8_t byte);
@@ -128,18 +133,21 @@ class SonarDriver {
   // protocol
   StateType its_state_;
   Semaphore state_machine_semaphore_;  // State Machine Semaphore
-  Semaphore scanning_callback_semaphore_;  // Scanning callback routine semaphore
+  Semaphore
+      scanning_callback_semaphore_;  // Scanning callback routine semaphore
   StateMachineStates state_;  // The variable controlling the state machine
   // The current message buffer begin read in
   // the current incoming message begin constructed from itsRawMsg
   std::vector<uint8_t> its_raw_msg_;
   SonarMessage its_msg_;
-  bool hasHeardMtAlive;  // Have we ever heard an mtAlive message from the sonar?
-  bool hasHeardMtVersionData;  // Have we ever heard an mtVersionData from the sonar?
-  bool hasHeardMtHeadData;  // Have we received a mtHeadData from the sonar?
-  bool hasParams;  // Has the Sonar received it's parameters?
-  SerialPort serial_;  // The actual serial port
-  bool its_running_;  // Are we currently running?
+  bool has_heard_mtAlive_;  // Have we ever heard an mtAlive message from the
+                            // sonar?
+  bool has_heard_mtVersionData_;  // Have we ever heard an mtVersionData from
+                                  // the sonar?
+  bool has_heard_mtHeadData_;  // Have we received a mtHeadData from the sonar?
+  bool has_params_;            // Has the Sonar received it's parameters?
+  SerialPort serial_;          // The actual serial port
+  bool its_running_;           // Are we currently running?
   // Should we be printing debugging information to the console? Warning, this
   // is very noisy and slow.
   bool its_debug_mode_;
@@ -147,8 +155,8 @@ class SonarDriver {
   float range_;
   float vos_;
   uint8_t angle_step_size_;
-  int left_limit_;
-  int right_limit_;
+  uint16_t left_limit_;
+  uint16_t right_limit_;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
                      std::vector<uint8_t> /*scanline*/)> itsScanLineCallback;
