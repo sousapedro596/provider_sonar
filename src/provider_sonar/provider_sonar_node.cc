@@ -39,28 +39,32 @@ namespace provider_sonar {
 
 //------------------------------------------------------------------------------
 //
-ProviderSonarNode::ProviderSonarNode(ros::NodeHandle &nh) {
-  Getparams(nh);
+ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
+    : nh_(nh), config_(nh_) {
+  SonarConfiguration(*config_);
 
-  if (!simulate_) {
-    scan_line_pub_ = nh.advertise<ScanLineMsgType>("scan_line", 100);
+  if (!config_->simulate) {
+    scan_line_pub_ = nh->advertise<ScanLineMsgType>("scan_line", 100);
 
-    driver_ =
-        new SonarDriver(num_bins_, range_, velocity_of_sound_, angle_step_size_,
-                        leftLimit_, rightLimit_, use_debug_mode);
+    driver_ = new SonarDriver(
+        static_cast<uint8_t>(config_->n_bins), config_->range, config_->vos,
+        static_cast<uint8_t>(config_->angle_step_size),
+        static_cast<uint8_t>(config_->left_limit),
+        static_cast<uint8_t>(config_->right_limit), config_->use_debug_mode);
 
-    reconfig_server_ = nh.advertiseService("Sonar_Reconfiguration",
-                                           &ProviderSonarNode::Reconfig, this);
+    reconfig_server_ = nh->advertiseService("Sonar_Reconfiguration",
+                                            &ProviderSonarNode::Reconfig, this);
 
     driver_->RegisterScanLineCallback(
         std::bind(&ProviderSonarNode::Publish, this, std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3));
 
-    uint8_t angle_step_size_byte = std::max(1, std::min(255, angle_step_size_));
+    uint8_t angle_step_size_byte = static_cast<uint8_t>(
+        std::max(1, std::min(255, config_->angle_step_size)));
 
-    if (!driver_->Connect(port_.c_str())) {
+    if (!driver_->Connect(config_->port.c_str())) {
       ROS_ERROR("Could not connect to device; simulating instead.");
-      simulate_ = true;
+      config_->simulate = true;
     }
   }
 }
@@ -81,10 +85,11 @@ ProviderSonarNode::~ProviderSonarNode() {
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::Reconfig(
-    provider_sonar::sonar_reconfig::Request &req,
-    provider_sonar::sonar_reconfig::Response &resp) {
-  driver_->Reconfigure(req.n_bins, req.range, req.vos, req.step_angle_size,
-                       req.left_limit, req.right_limit);
+    provider_sonar::sonar_reconfiguration::Request &req,
+    provider_sonar::sonar_reconfiguration::Response &resp) {
+  driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
+                       static_cast<float>(req.vos), req.step_angle_size,
+                       req.left_limit, req.right_limit, req.debug_mode);
   return true;
 }
 
@@ -95,7 +100,7 @@ void ProviderSonarNode::Publish(AngleType scan_angle,
                                 IntensityBinsRawType intensity_bins) {
   ScanLineMsgType::Ptr scan_line_msg(new ScanLineMsgType);
   scan_line_msg->header.stamp = ros::Time::now();
-  scan_line_msg->header.frame_id = frame_id_;
+  scan_line_msg->header.frame_id = config_.frame_id;
   scan_line_msg->angle = scan_angle;
   scan_line_msg->bin_distance_step = bin_distance_step;
 
@@ -113,204 +118,33 @@ void ProviderSonarNode::Publish(AngleType scan_angle,
 
 //------------------------------------------------------------------------------
 //
-bool ProviderSonarNode::Getparams(ros::NodeHandle &nh) {
-  if (nh.hasParam("/micron_driver/frame_id_"))
-    nh.getParam("/micron_driver/frame_id_", frame_id_);
-  else {
-    frame_id_ = "Micron";
-    ROS_WARN(
-        "Did not find frame_id on the parameter Server, using default value "
-        "instead");
-  }
-
-  if (nh.hasParam("/micron_driver/port_"))
-    nh.getParam("/micron_driver/port_", port_);
-  else {
-    port_ = "/dev/ttyS3";
-    // port_ = "/dev/ttyUSB0";
-    ROS_WARN(
-        "Did not find port_ on the parameter Server, using default value "
-        "instead");
-  }
-
-  if (nh.hasParam("/micron_driver/num_bins_"))
-    nh.getParam("/micron_driver/num_bins_", num_bins_);
-  else {
-    num_bins_ = 200;
-    ROS_WARN(
-        "Did not find num_bins_ on the parameter Server, using default value "
-        "instead");
-  }
-
-  if (nh.hasParam("/micron_driver/range_"))
-    nh.getParam("/micron_driver/range_", range_);
-  else {
-    range_ = 9;
-    ROS_WARN(
-        "Did not find range_ on the parameter Server, using default value "
-        "instead");
-  }
-
-  if (nh.hasParam("/micron_driver/velocity_of_sound_"))
-    nh.getParam("/micron_driver/velocity_of_sound_", velocity_of_sound_);
-  else {
-    velocity_of_sound_ = 1500;
-    ROS_WARN(
-        "Did not find velocity_of_sound_ on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/angle_step_size_"))
-    nh.getParam("/micron_driver/angle_step_size_", angle_step_size_);
-  else {
-    angle_step_size_ = 16;
-    ROS_WARN(
-        "Did not find angle_step_size_ on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/leftLimit_"))
-    nh.getParam("/micron_driver/leftLimit_", leftLimit_);
-  else {
-    leftLimit_ = 2400;
-    ROS_WARN(
-        "Did not find leftLimit_ on the parameter Server, using default "
-        "value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/rightLimit_"))
-    nh.getParam("/micron_driver/rightLimit_", rightLimit_);
-  else {
-    rightLimit_ = 4000;
-    ROS_WARN(
-        "Did not find rightLimit_ on the parameter Server, using default "
-        "value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/use_debug_mode"))
-    nh.getParam("/micron_driver/use_debug_mode", use_debug_mode);
-  else {
-    use_debug_mode = true;
-    ROS_WARN(
-        "Did not find use_debug_mode on the parameter Server, using default "
-        "value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_"))
-    nh.getParam("/micron_driver/simulate_", simulate_);
-  else {
-    simulate_ = false;
-    ROS_WARN(
-        "Did not find simulate_ on the parameter Server, using default value "
-        "instead");
-  }
-
-  // Sonar simulation parameters
-  if (nh.hasParam("/micron_driver/simulate_num_bins_"))
-    nh.getParam("/micron_driver/simulate_num_bins_", simulate_num_bins_);
-  else {
-    simulate_num_bins_ = false;
-    ROS_WARN(
-        "Did not find simulate_num_bins_ on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_bin_distance_step_"))
-    nh.getParam("/micron_driver/simulate_bin_distance_step_",
-                simulate_bin_distance_step_);
-  else {
-    simulate_bin_distance_step_ = false;
-    ROS_WARN(
-        "Did not find simulate_bin_distance_step_ on the parameter Server, "
-        "using default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_distance"))
-    nh.getParam("/micron_driver/simulate_distance", simulate_distance);
-  else {
-    simulate_distance = false;
-    ROS_WARN(
-        "Did not find simulate_distance on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_intensity"))
-    nh.getParam("/micron_driver/simulate_intensity", simulate_intensity);
-  else {
-    simulate_intensity = false;
-    ROS_WARN(
-        "Did not find simulate_intensity on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_intensity_variance"))
-    nh.getParam("/micron_driver/simulate_intensity_variance",
-                simulate_intensity_variance);
-  else {
-    simulate_intensity_variance = false;
-    ROS_WARN(
-        "Did not find simulate_intensity_variance on the parameter Server, "
-        "using default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_use_manual_angle"))
-    nh.getParam("/micron_driver/simulate_use_manual_angle",
-                simulate_use_manual_angle);
-  else {
-    simulate_use_manual_angle = false;
-    ROS_WARN(
-        "Did not find simulate_use_manual_angle on the parameter Server, "
-        "using default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_manual_angle"))
-    nh.getParam("/micron_driver/simulate_manual_angle", simulate_manual_angle);
-  else {
-    simulate_manual_angle = false;
-    ROS_WARN(
-        "Did not find simulate_manual_angle on the parameter Server, using "
-        "default value instead");
-  }
-
-  if (nh.hasParam("/micron_driver/simulate_scan_angle_velocity"))
-    nh.getParam("/micron_driver/simulate_scan_angle_velocity",
-                simulate_scan_angle_velocity);
-  else {
-    simulate_scan_angle_velocity = false;
-    ROS_WARN(
-        "Did not find simulate_scan_angle_velocity on the parameter Server, "
-        "using default value instead");
-  }
-}
-
-//------------------------------------------------------------------------------
-//
 void ProviderSonarNode::Simulate() {
-  if (!simulate_) return;
+  if (!config_.simulate) return;
 
   // This code simulates the sonar.
   static ros::Time last_time_;
   ros::Time now = ros::Time::now();
 
-  IntensityBinsRawType intensity_bins(simulate_num_bins_);
-  for (int i = 0; i < simulate_num_bins_; ++i) {
+  IntensityBinsRawType intensity_bins(config_.simulate_n_bins);
+  for (int i = 0; i < config_.simulate_n_bins; ++i) {
     intensity_bins[i] =
-        simulate_intensity *
-        atlas::NormalizedGaussian(
-            simulate_bin_distance_step_ * (i + 1) - simulate_distance,
-            simulate_intensity_variance);
+        config_.simulate_intensity *
+        atlas::NormalizedGaussian(config_.simulate_bin_distance_step * (i + 1) -
+                                      config_.simulate_distance,
+                                  config_.simulate_intensity_variance);
   }
 
-  Publish(scan_angle, simulate_bin_distance_step_, intensity_bins);
+  Publish(scan_angle_, config_.simulate_bin_distance_step, intensity_bins);
 
-  if (simulate_use_manual_angle)
-    scan_angle = simulate_manual_angle;
+  if (config_.simulate_use_manual_angle)
+    scan_angle_ = config_.simulate_manual_angle;
   else
-    scan_angle += simulate_scan_angle_velocity * (now - last_time_).toSec();
+    scan_angle_ +=
+        config_.simulate_scan_angle_velocity * (now - last_time_).toSec();
 
-  scan_angle = scan_angle > 180.0 ? scan_angle - 360.0 : scan_angle < -180
-                                                             ? scan_angle + 360
-                                                             : scan_angle;
+  scan_angle_ = scan_angle_ > 180.0
+                    ? scan_angle_ - 360.0
+                    : scan_angle_ < -180 ? scan_angle_ + 360 : scan_angle_;
 
   last_time_ = now;
 }

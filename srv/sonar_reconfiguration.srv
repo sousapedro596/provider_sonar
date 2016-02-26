@@ -4,5 +4,6 @@ float64 vos
 uint8 step_angle_size
 uint16 left_limit
 uint16 right_limit
+bool debug_mode
 ---
 int8 result

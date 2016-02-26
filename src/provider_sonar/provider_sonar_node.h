@@ -36,9 +36,10 @@
 #include <ros/ros.h>
 #include "std_msgs/String.h"
 #include <provider_sonar/ScanLine.h>
-#include <provider_sonar/sonar_reconfig.h>
+#include <provider_sonar/sonar_reconfiguration.h>
 #include <sstream>
 #include "stdint.h"
+#include "sonar_configuration.h"
 #include <provider_sonar/Serial.h>
 #include <provider_sonar/sonar_driver.h>
 #include <lib_atlas/maths/numbers.h>
@@ -64,15 +65,15 @@ class ProviderSonarNode {
   //==========================================================================
   // P U B L I C   C / D T O R S
 
-  ProviderSonarNode(ros::NodeHandle &nh);
+  ProviderSonarNode(ros::NodeHandlePtr &nh);
 
   ~ProviderSonarNode();
 
   //==========================================================================
   // P U B L I C   M E T H O D S
 
-  bool Reconfig(provider_sonar::sonar_reconfig::Request &req,
-                provider_sonar::sonar_reconfig::Response &resp);
+  bool Reconfig(provider_sonar::sonar_reconfiguration::Request &req,
+                provider_sonar::sonar_reconfiguration::Response &resp);
 
   /* This function is a callback associated with the reception of a Scanline
      Message from the Sonar.
@@ -83,10 +84,6 @@ class ProviderSonarNode {
 
   void Simulate();
 
-  // This function queries the parameter server for the needed parameters. If
-  // not found, it uses the default values:
-  bool Getparams(ros::NodeHandle &nh);
-
  private:
   //============================================================================
   // P R I V A T E   M E M B E R S
@@ -96,29 +93,11 @@ class ProviderSonarNode {
   // Create a service server to allow dynamic reconfiguration of the sonar
   ros::ServiceServer reconfig_server_;
 
-  // Sonar parameters: Will be read from parameter server.
-  std::string frame_id_;
-  std::string port_;
-  int num_bins_;
-  double range_;
-  double velocity_of_sound_;
-  int angle_step_size_;
-  int leftLimit_;
-  int rightLimit_;
-  bool use_debug_mode;
-  bool simulate_;
+  SonarConfiguration config_;
+
   SonarDriver *driver_;
 
-  // Sonar simulation parameters
-  int simulate_num_bins_;
-  double simulate_bin_distance_step_;
-  double simulate_distance;
-  int simulate_intensity;
-  double simulate_intensity_variance;
-  bool simulate_use_manual_angle;
-  double simulate_manual_angle;
-  double simulate_scan_angle_velocity;
-  float scan_angle;
+  float scan_angle_;
 };
 
 }  // namespace provider_sonar

@@ -5,10 +5,10 @@
 #include "provider_sonar/scanline_converter.h"
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "micron_driver");
+  ros::init(argc, argv, "provider_sonar_node");
 
-  ros::NodeHandle nh("~");
-  provider_sonar::ProviderSonarNode tritech_micron(nh);
+  ros::NodeHandlePtr nh(new ros::NodeHandle("~"));
+  provider_sonar::ProviderSonarNode sn(nh);
   provider_sonar::ScanLineConverter scanline_converter(nh);
 
   ros::spin();

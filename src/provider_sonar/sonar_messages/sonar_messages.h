@@ -515,9 +515,10 @@ struct mtHeadDataMsg {
 
     std::cout << "   Scanline size: " << scanline.size() << std::endl;
 
-    std::cout << "   Scanline [";
-    for (uint8_t c : scanline) std::cout << std::hex << static_cast<int>(c);
-    std::cout << "]" << std::endl;
+    //    std::cout << "   Scanline [ ";
+    //    for (uint8_t c : scanline)
+    //      std::cout << std::hex << static_cast<int>(c) << std::dec<< " ";
+    //    std::cout << " ]" << std::endl;
   }
 
   mtHeadDataMsg(SonarMessage const &msg) {

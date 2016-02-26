@@ -50,7 +50,8 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_running_(false),
       its_debug_mode_(debug_mode) {
   ResetMessage();
-  SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit);
+  SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit,
+                debug_mode);
 }
 
 //------------------------------------------------------------------------------
@@ -81,13 +82,14 @@ void SonarDriver::Disconnect() {
 //
 void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
                                 uint8_t angle_step_size, uint16_t left_limit,
-                                uint16_t right_limit) {
+                                uint16_t right_limit, bool debug_mode) {
   n_bins_ = n_bins;
   range_ = range;
   vos_ = vos;
   angle_step_size_ = angle_step_size;
   left_limit_ = left_limit;
   right_limit_ = right_limit;
+  its_debug_mode_ = debug_mode;
 }
 
 //------------------------------------------------------------------------------
@@ -130,9 +132,10 @@ void SonarDriver::Configure() {
 //
 void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
                               uint8_t step_angle_size, uint16_t left_limit,
-                              uint16_t right_limit) {
+                              uint16_t right_limit, bool debug_mode) {
   // Load the new values
-  SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit);
+  SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit,
+                debug_mode);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   state_machine_semaphore_ = red;

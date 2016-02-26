@@ -37,16 +37,16 @@ namespace provider_sonar {
 
 //------------------------------------------------------------------------------
 //
-ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
-  scan_line_sub_ = nh.subscribe("/micron_driver/scan_line", 1,
-                                &ScanLineConverter::ScanLineCB, this);
+ScanLineConverter::ScanLineConverter(const ros::NodeHandlePtr &nh)
+    : nh_(nh), config_(nh_) {
+  scan_line_sub_ = nh_->subscribe("/micron_driver/scan_line", 1,
+                                  &ScanLineConverter::ScanLineCB, this);
   point_cloud2_pub_ =
-      nh.advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
+      nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
-  reconfigserver = nh.advertiseService("Scanline_Reconfiguration",
-                                       &ScanLineConverter::Reconfig, this);
+  reconfigserver_ = nh->advertiseService("Scanline_Reconfiguration",
+                                         &ScanLineConverter::Reconfig, this);
 
-  Getparams(nh);
   ClearLaserStats();
 }
 
@@ -55,67 +55,18 @@ ScanLineConverter::ScanLineConverter(ros::NodeHandle &nh) {
 
 //------------------------------------------------------------------------------
 //
-bool ScanLineConverter::Reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
-                                 provider_sonar::scanline_parser_reconfig::Response &resp) {
-  min_laser_intensity_threshold = req.min_laser_intensity_threshold;
-  min_distance_threshold = req.min_distance_threshold;
-  min_point_cloud_intensity_threshold =
+bool ScanLineConverter::Reconfig(
+    provider_sonar::scanline_parser_reconfig::Request &req,
+    provider_sonar::scanline_parser_reconfig::Response &resp) {
+  config_.min_distance_threshold = req.min_distance_threshold;
+  config_.min_point_cloud_intensity_threshold =
       req.min_point_cloud_intensity_threshold;
-  use_point_cloud_threshold = req.use_point_cloud_threshold;
-  only_first_point = req.only_first_point;
+  config_.use_point_cloud_threshold = req.use_point_cloud_threshold;
+  config_.only_first_point = req.only_first_point;
 
   resp.result = true;
 
   return true;
-}
-
-//------------------------------------------------------------------------------
-//
-bool ScanLineConverter::Getparams(ros::NodeHandle &nh) {
-  if (nh.hasParam("/scan_line_parser/use_point_cloud_threshold"))
-    nh.getParam("/scan_line_parser/use_point_cloud_threshold",
-                use_point_cloud_threshold);
-  else {
-    use_point_cloud_threshold = true;
-    ROS_WARN(
-        "Did not find 'use_point_cloud_threshold' on the parameter Server, "
-            "using default value instead");
-  }
-  if (nh.hasParam("/scan_line_parser/min_distance_threshold"))
-    nh.getParam("/scan_line_parser/min_distance_threshold",
-                min_distance_threshold);
-  else {
-    min_distance_threshold = 0.0;
-    ROS_WARN(
-        "Did not find 'min_distance_threshold' on the parameter Server, "
-            "using default value instead");
-  }
-  if (nh.hasParam("/scan_line_parser/min_point_cloud_intensity_threshold"))
-    nh.getParam("/scan_line_parser/min_point_cloud_intensity_threshold",
-                min_point_cloud_intensity_threshold);
-  else {
-    min_point_cloud_intensity_threshold = 50;
-    ROS_WARN(
-        "Did not find 'min_point_cloud_intensity_threshold' on the parameter "
-            "Server, using default value instead");
-  }
-  if (nh.hasParam("/scan_line_parser/min_laser_intensity_threshold"))
-    nh.getParam("/scan_line_parser/min_laser_intensity_threshold",
-                min_laser_intensity_threshold);
-  else {
-    min_laser_intensity_threshold = 50;
-    ROS_WARN(
-        "Did not find 'min_laser_intensity_threshold' on the parameter "
-            "Server, using default value instead");
-  }
-  if (nh.hasParam("/scan_line_parser/only_first_point"))
-    nh.getParam("/scan_line_parser/only_first_point", only_first_point);
-  else {
-    only_first_point = true;
-    ROS_WARN(
-        "Did not find 'only_first_point' on the parameter Server, using "
-            "default value instead");
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -131,14 +82,16 @@ void ScanLineConverter::ClearLaserStats() {
 //------------------------------------------------------------------------------
 //
 // Callback when a scanline is received
-void ScanLineConverter::ScanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  ROS_INFO("Publishing");
+void ScanLineConverter::ScanLineCB(
+    const ScanLineMsgType::ConstPtr &scan_line_msg) {
+  // ROS_INFO("Publishing");
   PublishPointCloud2(scan_line_msg);
 }
 
 //------------------------------------------------------------------------------
 //
-void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg) {
+void ScanLineConverter::PublishPointCloud2(
+    const ScanLineMsgType::ConstPtr &scan_line_msg) {
   sensor_msgs::PointCloud2 point_cloud_msg_;
   // - Copy ROS header
   point_cloud_msg_.header = scan_line_msg->header;
@@ -164,15 +117,15 @@ void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan
   // - length of the row TODO: is it ok?
   point_cloud_msg_.row_step = point_cloud_msg_.width;
   point_cloud_msg_.data.resize(point_cloud_msg_.point_step *
-      point_cloud_msg_.row_step);
+                               point_cloud_msg_.row_step);
   point_cloud_msg_.is_bigendian = false;
   point_cloud_msg_.is_dense = false;
 
   // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
   float delta_x = scan_line_msg->bin_distance_step *
-      cos(atlas::DegToRad(scan_line_msg->angle - 180.0));
+                  cos(atlas::DegToRad(scan_line_msg->angle - 180.0));
   float delta_y = scan_line_msg->bin_distance_step *
-      sin(atlas::DegToRad(scan_line_msg->angle - 180.0));
+                  sin(atlas::DegToRad(scan_line_msg->angle - 180.0));
 
   // - try with distance * cos (theta)
   float coordinate_x = 0;
@@ -180,18 +133,18 @@ void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan
   float coordinate_z = 0;
   for (size_t i = 0; i < scan_line_msg->bins.size();
        ++i, coordinate_x += delta_x, coordinate_y += delta_y) {
-    float bin_intensity = (float) (scan_line_msg->bins[i].intensity) / 255.0;
+    float bin_intensity = (float)(scan_line_msg->bins[i].intensity) / 255.0;
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-               point_cloud_msg_.fields[0].offset],
+                                  point_cloud_msg_.fields[0].offset],
            &coordinate_x, sizeof(float));
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-               point_cloud_msg_.fields[1].offset],
+                                  point_cloud_msg_.fields[1].offset],
            &coordinate_y, sizeof(float));
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-               point_cloud_msg_.fields[2].offset],
+                                  point_cloud_msg_.fields[2].offset],
            &coordinate_z, sizeof(float));
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-               point_cloud_msg_.fields[3].offset],
+                                  point_cloud_msg_.fields[3].offset],
            &bin_intensity, sizeof(float));
     // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
     // point_cloud_msg_.fields[0].offset] = coordinate_x;
@@ -202,7 +155,7 @@ void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan
     // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
     // point_cloud_msg_.fields[3].offset] =
   }
-  ROS_INFO("Publishing PointCloud2");
+  // ROS_INFO("Publishing PointCloud2");
   point_cloud2_pub_.publish(point_cloud_msg_);
 }
 
@@ -211,10 +164,12 @@ void ScanLineConverter::PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan
 // This function loops through the received scanline until it finds a
 // intensity greater then the defined threshold.
 // It then returns the intensity and the corresponding distance
-ScanLineConverter::IntensityBinMsgType ScanLineConverter::getThresholdedScanLine(
+ScanLineConverter::IntensityBinMsgType
+ScanLineConverter::getThresholdedScanLine(
     const ScanLineMsgType::ConstPtr &scan_line_msg) {
   for (int i = 0; i < scan_line_msg->bins.size(); ++i) {
-    if (scan_line_msg->bins[i].distance < min_distance_threshold) continue;
+    if (scan_line_msg->bins[i].distance < config_.min_distance_threshold)
+      continue;
 
     /*if ( !reconfigure_params_.use_laser_threshold ||
     scan_line_msg->bins[i].intensity >=
@@ -225,9 +180,6 @@ ScanLineConverter::IntensityBinMsgType ScanLineConverter::getThresholdedScanLine
             laser_scan_msg->ranges.push_back( scan_line_msg->bins[i].distance
     );
     }*/
-
-    if (scan_line_msg->bins[i].intensity >= min_laser_intensity_threshold)
-      return scan_line_msg->bins[i];
   }
 
   return IntensityBinMsgType();

@@ -91,7 +91,7 @@ class SonarDriver {
   // without restarting the driver
   void Reconfigure(uint16_t n_bins, float range, float vos,
                    uint8_t step_angle_size, uint16_t left_limit,
-                   uint16_t right_limit);
+                   uint16_t right_limit, bool debug_mode);
 
   //! Get access to the scan lines that have been read by the sonar.
   /*! Note that this method is thread safe and will lock the internal scan
@@ -107,7 +107,7 @@ class SonarDriver {
   // This function sets the necessary parameters for the Sonar operation.
   void SetParameters(uint16_t n_bins, float range, float vos,
                      uint8_t angle_step_size, uint16_t left_limit,
-                     uint16_t right_limit);
+                     uint16_t right_limit, bool debug_mode);
 
   // Process a single incoming byte (add it onto itsRawMsg, etc.)
   void ProcessByte(uint8_t byte);

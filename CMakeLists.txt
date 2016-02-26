@@ -46,7 +46,7 @@ add_message_files(
 add_service_files(
         DIRECTORY srv
         FILES
-        sonar_reconfig.srv
+        sonar_reconfiguration.srv
         scanline_parser_reconfig.srv
 )
 
@@ -87,6 +87,7 @@ add_executable( ${TARGET_NAME}
         ${provider_sonar_SRC_DIR}/Serial.cpp
         ${provider_sonar_SRC_DIR}/sonar_driver.cc
         ${provider_sonar_SRC_DIR}/scanline_converter.cc
+        ${provider_sonar_SRC_DIR}/sonar_configuration.cc
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc)
 target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )

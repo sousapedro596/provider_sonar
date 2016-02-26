@@ -41,10 +41,10 @@
 //#include <provider_sonar/math.h>
 #include <provider_sonar/ScanLine.h>
 
-#include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include "ros/ros.h"
+#include "sonar_configuration.h"
 
 // Service includes
 #include <provider_sonar/scanline_parser_reconfig.h>
@@ -66,15 +66,12 @@ class ScanLineConverter {
 
   //==========================================================================
   // P U B L I C   C / D T O R S
-  ScanLineConverter(ros::NodeHandle &nh);
-
+  ScanLineConverter(const ros::NodeHandlePtr &nh);
 
   //==========================================================================
   // P U B L I C   M E T H O D S
   bool Reconfig(provider_sonar::scanline_parser_reconfig::Request &req,
                 provider_sonar::scanline_parser_reconfig::Response &resp);
-
-  bool Getparams(ros::NodeHandle &nh);
 
   void ClearLaserStats();
 
@@ -88,15 +85,12 @@ class ScanLineConverter {
  private:
   //============================================================================
   // P R I V A T E   M E M B E R S
-  ros::Subscriber scan_line_sub_;  // Subscriber
-  ros::Publisher point_cloud2_pub_;  // Publishers
-  ros::ServiceServer reconfigserver;  // Services
+  ros::Subscriber scan_line_sub_;      // Subscriber
+  ros::Publisher point_cloud2_pub_;    // Publishers
+  ros::ServiceServer reconfigserver_;  // Services
+  ros::NodeHandlePtr nh_;
+  SonarConfiguration config_;
 
-  double min_laser_intensity_threshold;
-  double min_distance_threshold;
-  double min_point_cloud_intensity_threshold;
-  bool use_point_cloud_threshold;
-  bool only_first_point;
   float min_laser_distance_;
   float max_laser_distance_;
   float angular_distance_;

@@ -1,0 +1,44 @@
+#**************************************
+#**********Sonar parameters************
+#**************************************
+#Frame id of the sonar
+/provider_sonar/sonar_driver/frame_id_ : "Micron"
+#Serial port the sonar is connected to 
+/provider_sonar/sonar_driver/port_ : "/dev/ttyS3"
+#Number of measurements to be taken 
+/provider_sonar/sonar_driver/n_bins_ : 400
+#Sonar range (m)
+/provider_sonar/sonar_driver/range_ : 8
+#Velocity of sound in water 
+/provider_sonar/sonar_driver/vos_ : 1500
+#Angle between two consecutive steps, in 1/16 gradians:
+#32 = 1.8º, 16 = 0.9º, 8 = 0.45º, 4 = 0.225º
+/provider_sonar/sonar_driver/angle_step_size_ : 16
+#Left Limit of scanning sector
+/provider_sonar/sonar_driver/left_limit_ : 2400
+#Right limit of scanning sector
+/provider_sonar/sonar_driver/right_limit_ : 4000
+#Debug mode for the driver 
+/provider_sonar/sonar_driver/use_debug_mode_ : false
+#Simulate the sonar
+/provider_sonar/sonar_driver/simulate_ : false
+
+#**************************************
+#********Simulation parameters*********
+#**************************************
+/provider_sonar/sonar_driver/simulate_n_bins_ : 400
+/provider_sonar/sonar_driver/simulate_bin_distance_step_ : 1.0
+/provider_sonar/sonar_driver/simulate_distance_ : 8.0
+/provider_sonar/sonar_driver/simulate_intensity_ : 255
+/provider_sonar/sonar_driver/simulate_intensity_variance_ : 10.0
+/provider_sonar/sonar_driver/simulate_use_manual_angle_ : false
+/provider_sonar/sonar_driver/simulate_manual_angle_ : 180.0
+/provider_sonar/sonar_driver/simulate_scan_angle_velocity_ : 180.0
+
+#**************************************
+#********Point Cloud parameters********
+#**************************************
+/provider_sonar/scanline_parser/use_point_cloud_threshold_ : true
+/provider_sonar/scanline_parser/min_distance_threshold_ : 0
+/provider_sonar/scanline_parser/min_point_cloud_intensity_threshold_ : 0
+/provider_sonar/scanline_parser/only_first_point_ : false
