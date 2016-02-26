@@ -46,7 +46,6 @@ class SonarConfiguration {
   // P U B L I C   C / D T O R S
 
   SonarConfiguration(const ros::NodeHandlePtr &nh);
-  SonarConfiguration(const SonarConfiguration &rhs);
 
   ~SonarConfiguration();
 

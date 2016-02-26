@@ -94,7 +94,6 @@ class ProviderSonarNode {
   ros::ServiceServer reconfig_server_;
 
   SonarConfiguration config_;
-
   SonarDriver *driver_;
 
   float scan_angle_;

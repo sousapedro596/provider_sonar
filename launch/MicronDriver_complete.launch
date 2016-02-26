@@ -1,13 +1,10 @@
 <launch>
 
 <!--Load parameters for the Sonar driver -->
-<rosparam command="load" file="$(find provider_sonar)/config/tritech_micron_config.yaml"/>
+<rosparam command="load" file="$(find provider_sonar)/config/sonar_configuration.yaml"/>
 
 <!--Create a sonar driver node-->
 <node pkg="provider_sonar" type="provider_sonar_node" name="micron_driver" output="screen" />
-
-<!-- Load parameters for the scanline parser-->
-<rosparam command="load" file="$(find provider_sonar)/config/scan_line_parser_config.yaml"/>
 
 <!--Create a node parser -->
 <node pkg="provider_sonar" type="micron_driver_scanline_parser" name="Scanline_parser" output="screen" />

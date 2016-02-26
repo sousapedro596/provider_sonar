@@ -66,7 +66,7 @@ class ScanLineConverter {
 
   //==========================================================================
   // P U B L I C   C / D T O R S
-  ScanLineConverter(const ros::NodeHandlePtr &nh);
+  ScanLineConverter(ros::NodeHandlePtr &nh);
 
   //==========================================================================
   // P U B L I C   M E T H O D S
@@ -85,10 +85,11 @@ class ScanLineConverter {
  private:
   //============================================================================
   // P R I V A T E   M E M B E R S
+
+  ros::NodeHandlePtr nh_;
   ros::Subscriber scan_line_sub_;      // Subscriber
   ros::Publisher point_cloud2_pub_;    // Publishers
   ros::ServiceServer reconfigserver_;  // Services
-  ros::NodeHandlePtr nh_;
   SonarConfiguration config_;
 
   float min_laser_distance_;

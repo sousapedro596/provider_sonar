@@ -37,7 +37,7 @@ namespace provider_sonar {
 //
 SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
     : frame_id("Micron"),
-      port("dev/ttys3"),
+      port("/dev/ttyS3"),
       n_bins(400),
       range(8),
       vos(1500),
@@ -59,34 +59,6 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       min_point_cloud_intensity_threshold(0),
       only_first_point(false),
       nh_(nh) {}
-
-//------------------------------------------------------------------------------
-//
-SonarConfiguration::SonarConfiguration(const SonarConfiguration &rhs) {
-  frame_id = rhs.frame_id;
-  port = rhs.port;
-  n_bins = rhs.n_bins;
-  range = rhs.range;
-  vos = rhs.vos;
-  angle_step_size = rhs.angle_step_size;
-  left_limit = rhs.left_limit;
-  right_limit = rhs.right_limit;
-  use_debug_mode = rhs.use_debug_mode;
-  simulate = rhs.simulate;
-  simulate_n_bins = rhs.simulate_n_bins;
-  simulate_bin_distance_step = rhs.simulate_bin_distance_step;
-  simulate_distance = rhs.simulate_distance;
-  simulate_intensity = rhs.simulate_intensity;
-  simulate_intensity_variance = rhs.simulate_intensity_variance;
-  simulate_use_manual_angle = rhs.simulate_use_manual_angle;
-  simulate_manual_angle = rhs.simulate_manual_angle;
-  simulate_scan_angle_velocity = rhs.simulate_scan_angle_velocity;
-  use_point_cloud_threshold = rhs.use_point_cloud_threshold;
-  min_distance_threshold = rhs.min_distance_threshold;
-  min_point_cloud_intensity_threshold = rhs.min_point_cloud_intensity_threshold;
-  only_first_point = rhs.only_first_point;
-  nh_ = rhs.nh_;
-}
 
 //------------------------------------------------------------------------------
 //

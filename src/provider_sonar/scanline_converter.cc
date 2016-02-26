@@ -37,7 +37,7 @@ namespace provider_sonar {
 
 //------------------------------------------------------------------------------
 //
-ScanLineConverter::ScanLineConverter(const ros::NodeHandlePtr &nh)
+ScanLineConverter::ScanLineConverter(ros::NodeHandlePtr &nh)
     : nh_(nh), config_(nh_) {
   scan_line_sub_ = nh_->subscribe("/micron_driver/scan_line", 1,
                                   &ScanLineConverter::ScanLineCB, this);

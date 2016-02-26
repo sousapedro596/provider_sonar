@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "provider_sonar_node");
 
   ros::NodeHandlePtr nh(new ros::NodeHandle("~"));
-  provider_sonar::ProviderSonarNode sn(nh);
+  provider_sonar::ProviderSonarNode providerSonarNode(nh);
   provider_sonar::ScanLineConverter scanline_converter(nh);
 
   ros::spin();

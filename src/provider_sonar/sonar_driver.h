@@ -28,6 +28,7 @@
 #include <boost/thread.hpp>
 #include <bits/shared_ptr.h>
 #include "stdint.h"
+#include "sonar_configuration.h"
 
 namespace provider_sonar {
 
