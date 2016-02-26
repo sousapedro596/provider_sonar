@@ -354,7 +354,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
 void SonarDriver::ProcessMessage(SonarMessage msg) {
   if (msg.id == mtVersionData) {
     mtVersionDataMsg parsedMsg(msg);
-    hasHeardMtVersionData = true;
+    has_heard_mtVersionData_ = true;
 
     if (its_debug_mode_)
       std::cout << std::endl
@@ -362,8 +362,8 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_) parsedMsg.print();
   } else if (msg.id == mtAlive) {
     mtAliveMsg parsedMsg(msg);
-    hasHeardMtAlive = true;
-    hasParams = !parsedMsg.no_params;
+    has_heard_mtAlive_ = true;
+    has_params_ = !parsedMsg.no_params;
 
     if (its_debug_mode_)
       std::cout << std::endl
@@ -371,7 +371,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_) parsedMsg.print();
   } else if (msg.id == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
-    hasHeardMtHeadData = true;
+    has_heard_mtHeadData_ = true;
 
     if (state_ == scanning) {
       serial_.writeVector(mtSendDataMsg);
