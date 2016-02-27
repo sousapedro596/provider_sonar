@@ -39,12 +39,12 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
     : frame_id("Micron"),
       port("/dev/ttyS3"),
       n_bins(400),
-      range(8),
-      vos(1500),
+      range(8.0),
+      vos(1500.0),
       angle_step_size(16),
       left_limit(2400),
       right_limit(4000),
-      use_debug_mode(false),
+      use_debug_mode(true),
       simulate(false),
       simulate_n_bins(400),
       simulate_bin_distance_step(1.0),
@@ -58,7 +58,9 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       min_distance_threshold(0),
       min_point_cloud_intensity_threshold(0),
       only_first_point(false),
-      nh_(nh) {}
+      nh_(nh) {
+  DeserializeConfiguration();
+}
 
 //------------------------------------------------------------------------------
 //
@@ -106,6 +108,7 @@ template <typename Tp_>
 void SonarConfiguration::FindParameter(const std::string &str, Tp_ &p) {
   if (nh_->hasParam("/provider_sonar" + str)) {
     nh_->getParam("/provider_sonar" + str, p);
+    ROS_INFO_STREAM(str << " = " << p);
   } else {
     ROS_WARN_STREAM("Did not find /provider_sonar" + str
                     << ". Using default value instead.");

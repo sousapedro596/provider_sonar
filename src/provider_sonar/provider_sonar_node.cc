@@ -45,10 +45,10 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     scan_line_pub_ = nh->advertise<ScanLineMsgType>("scan_line", 100);
 
     driver_ = new SonarDriver(
-        static_cast<uint8_t>(config_.n_bins), config_.range, config_.vos,
+        static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
         static_cast<uint8_t>(config_.angle_step_size),
-        static_cast<uint8_t>(config_.left_limit),
-        static_cast<uint8_t>(config_.right_limit), config_.use_debug_mode);
+        static_cast<uint16_t>(config_.left_limit),
+        static_cast<uint16_t>(config_.right_limit), config_.use_debug_mode);
 
     reconfig_server_ = nh->advertiseService("Sonar_Reconfiguration",
                                             &ProviderSonarNode::Reconfig, this);
