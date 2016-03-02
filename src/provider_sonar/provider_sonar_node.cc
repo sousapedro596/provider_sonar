@@ -43,6 +43,10 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     : nh_(nh), config_(nh_) {
   if (!config_.simulate) {
     scan_line_pub_ = nh->advertise<ScanLineMsgType>("scan_line", 100);
+    scan_line_sub_ = nh_->subscribe("/micron_driver/scan_line", 1,
+                                    &ProviderSonarNode::ScanLineCB, this);
+    point_cloud2_pub_ =
+        nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
     driver_ = new SonarDriver(
         static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
@@ -80,6 +84,24 @@ ProviderSonarNode::~ProviderSonarNode() {
 //==============================================================================
 // M E T H O D   S E C T I O N
 
+//-----------------------------------------------------------------------------
+//
+void ProviderSonarNode::Spin() {
+  while (!ros::isShuttingDown()) {
+    while (nh_->ok()) {
+      ros::spinOnce();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+//
+// Callback when a scanline is received
+void ProviderSonarNode::ScanLineCB(
+    const ScanLineMsgType::ConstPtr &scan_line_msg) {
+  PublishPointCloud2(scan_line_msg);
+}
+
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::Reconfig(
@@ -112,6 +134,77 @@ void ProviderSonarNode::Publish(AngleType scan_angle,
   }
 
   scan_line_pub_.publish(scan_line_msg);
+}
+
+//------------------------------------------------------------------------------
+//
+void ProviderSonarNode::PublishPointCloud2(
+    const ScanLineMsgType::ConstPtr &scan_line_msg) {
+  sensor_msgs::PointCloud2 point_cloud_msg_;
+  // - Copy ROS header
+  point_cloud_msg_.header = scan_line_msg->header;
+  // - TODO: Wtf is height and width
+  point_cloud_msg_.width = scan_line_msg->bins.size();
+  point_cloud_msg_.height = 1;
+  // - Fields: x, y, z, intensity
+  // - Fields describe the binary blob in data
+  point_cloud_msg_.fields.resize(4);
+  point_cloud_msg_.fields[0].name = "x";
+  point_cloud_msg_.fields[1].name = "y";
+  point_cloud_msg_.fields[2].name = "z";
+  point_cloud_msg_.fields[3].name = "intensity";
+  // - Offset from the beginning of the point struct in bytes
+  int offset = 0;
+  for (size_t i = 0; i < point_cloud_msg_.fields.size(); ++i, offset += 4) {
+    point_cloud_msg_.fields[i].offset = offset;
+    point_cloud_msg_.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
+    point_cloud_msg_.fields[i].count = 1;
+  }
+  // - Offset per point of data (x, y, z, intensity)
+  point_cloud_msg_.point_step = offset;
+  // - length of the row TODO: is it ok?
+  point_cloud_msg_.row_step = point_cloud_msg_.width;
+  point_cloud_msg_.data.resize(point_cloud_msg_.point_step *
+                               point_cloud_msg_.row_step);
+  point_cloud_msg_.is_bigendian = false;
+  point_cloud_msg_.is_dense = false;
+
+  // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
+  float delta_x = scan_line_msg->bin_distance_step *
+                  cos(atlas::DegToRad(scan_line_msg->angle - 180.0));
+  float delta_y = scan_line_msg->bin_distance_step *
+                  sin(atlas::DegToRad(scan_line_msg->angle - 180.0));
+
+  // - try with distance * cos (theta)
+  float coordinate_x = 0;
+  float coordinate_y = 0;
+  float coordinate_z = 0;
+  for (size_t i = 0; i < scan_line_msg->bins.size();
+       ++i, coordinate_x += delta_x, coordinate_y += delta_y) {
+    float bin_intensity = (float)(scan_line_msg->bins[i].intensity) / 255.0;
+    memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+                                  point_cloud_msg_.fields[0].offset],
+           &coordinate_x, sizeof(float));
+    memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+                                  point_cloud_msg_.fields[1].offset],
+           &coordinate_y, sizeof(float));
+    memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+                                  point_cloud_msg_.fields[2].offset],
+           &coordinate_z, sizeof(float));
+    memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+                                  point_cloud_msg_.fields[3].offset],
+           &bin_intensity, sizeof(float));
+    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+    // point_cloud_msg_.fields[0].offset] = coordinate_x;
+    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+    // point_cloud_msg_.fields[1].offset] = coordinate_y;
+    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+    // point_cloud_msg_.fields[2].offset] = 0;
+    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
+    // point_cloud_msg_.fields[3].offset] =
+  }
+  // ROS_INFO("Publishing PointCloud2");
+  point_cloud2_pub_.publish(point_cloud_msg_);
 }
 
 //------------------------------------------------------------------------------

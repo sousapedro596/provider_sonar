@@ -39,6 +39,7 @@
 #include <provider_sonar/sonar_reconfiguration.h>
 #include <sstream>
 #include "stdint.h"
+#include <sensor_msgs/PointCloud2.h>
 #include "sonar_configuration.h"
 #include <provider_sonar/Serial.h>
 #include <provider_sonar/sonar_driver.h>
@@ -72,6 +73,10 @@ class ProviderSonarNode {
   //==========================================================================
   // P U B L I C   M E T H O D S
 
+  void Spin();
+
+  void ScanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg);
+
   bool Reconfig(provider_sonar::sonar_reconfiguration::Request &req,
                 provider_sonar::sonar_reconfiguration::Response &resp);
 
@@ -82,6 +87,8 @@ class ProviderSonarNode {
   void Publish(AngleType scan_angle, StepType bin_distance_step,
                IntensityBinsRawType intensity_bins);
 
+  void PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg);
+
   void Simulate();
 
  private:
@@ -91,6 +98,9 @@ class ProviderSonarNode {
   ros::NodeHandlePtr nh_;
   ros::Publisher scan_line_pub_;  // Create publisher for the sonar scanlines
   // Create a service server to allow dynamic reconfiguration of the sonar
+  ros::Subscriber scan_line_sub_;      // Subscriber
+  ros::Publisher point_cloud2_pub_;    // Publishers
+  ros::ServiceServer reconfigserver_;  // Services
   ros::ServiceServer reconfig_server_;
 
   SonarConfiguration config_;

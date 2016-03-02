@@ -86,7 +86,6 @@ add_executable( ${TARGET_NAME}
         ${provider_sonar_SRC_DIR}/main.cc
         ${provider_sonar_SRC_DIR}/Serial.cpp
         ${provider_sonar_SRC_DIR}/sonar_driver.cc
-        ${provider_sonar_SRC_DIR}/scanline_converter.cc
         ${provider_sonar_SRC_DIR}/sonar_configuration.cc
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc)
 target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
