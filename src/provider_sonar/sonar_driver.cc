@@ -150,7 +150,7 @@ void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
 //
 void SonarDriver::RegisterScanLineCallback(
     std::function<void(float, float, std::vector<uint8_t>)> callback) {
-  itsScanLineCallback = callback;
+  its_scanline_callback = callback;
 }
 
 //------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       return;
     }
 
-    std::cerr << "Parsing error! " << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cerr << "Parsing error!" << std::endl;
     ResetMessage();
     return;
   }
@@ -397,9 +397,10 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     }
 
     float metersPerBin = range_meters / parsedMsg.scanline.size();
-    if (itsScanLineCallback)
-      itsScanLineCallback(parsedMsg.transducer_bearing, metersPerBin,
-                          parsedMsg.scanline);
+    if (its_scanline_callback) {
+      its_scanline_callback(parsedMsg.transducer_bearing, metersPerBin,
+                            parsedMsg.scanline);
+    }
 
     if (its_debug_mode_)
       std::cout << std::endl

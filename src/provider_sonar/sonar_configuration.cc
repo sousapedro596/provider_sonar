@@ -44,7 +44,7 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       angle_step_size(16),
       left_limit(2400),
       right_limit(4000),
-      use_debug_mode(true),
+      use_debug_mode(false),
       simulate(false),
       simulate_n_bins(400),
       simulate_bin_distance_step(1.0),
@@ -108,7 +108,6 @@ template <typename Tp_>
 void SonarConfiguration::FindParameter(const std::string &str, Tp_ &p) {
   if (nh_->hasParam("/provider_sonar" + str)) {
     nh_->getParam("/provider_sonar" + str, p);
-    ROS_INFO_STREAM(str << " = " << p);
   } else {
     ROS_WARN_STREAM("Did not find /provider_sonar" + str
                     << ". Using default value instead.");

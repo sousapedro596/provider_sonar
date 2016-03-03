@@ -604,7 +604,6 @@ struct mtHeadDataMsg {
 
     uint16_t data_bytes =
         (uint16_t(msg.data[43]) | (uint16_t(msg.data[44]) << 8));
-    std::cout << "data_bytes = : " << data_bytes << std::endl;
 
     // If adc8on = 1, data_bytes = n_bin
     // Else, data_bytes = n_bin / 2

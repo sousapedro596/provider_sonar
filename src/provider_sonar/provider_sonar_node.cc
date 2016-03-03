@@ -42,8 +42,8 @@ namespace provider_sonar {
 ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     : nh_(nh), config_(nh_) {
   if (!config_.simulate) {
-    scan_line_pub_ = nh->advertise<ScanLineMsgType>("scan_line", 100);
-    scan_line_sub_ = nh_->subscribe("/micron_driver/scan_line", 1,
+    scan_line_pub_ = nh_->advertise<ScanLineMsgType>("scan_line", 100);
+    scan_line_sub_ = nh_->subscribe("/sonar_node/scan_line", 1,
                                     &ProviderSonarNode::ScanLineCB, this);
     point_cloud2_pub_ =
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
@@ -99,6 +99,7 @@ void ProviderSonarNode::Spin() {
 // Callback when a scanline is received
 void ProviderSonarNode::ScanLineCB(
     const ScanLineMsgType::ConstPtr &scan_line_msg) {
+  ROS_INFO("Scanline received");
   PublishPointCloud2(scan_line_msg);
 }
 

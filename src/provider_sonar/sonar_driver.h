@@ -68,8 +68,7 @@ class SonarDriver {
   // P U B L I C   C / D T O R S
 
   SonarDriver(uint16_t n_bins, float range, float vos, uint8_t angle_step_size,
-              uint16_t left_limit, uint16_t rigth_limit,
-              bool debug_mode = true);
+              uint16_t left_limit, uint16_t rigth_limit, bool debug_mode);
 
   ~SonarDriver();
 
@@ -160,7 +159,7 @@ class SonarDriver {
   uint16_t right_limit_;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
-                     std::vector<uint8_t> /*scanline*/)> itsScanLineCallback;
+                     std::vector<uint8_t> /*scanline*/)> its_scanline_callback;
 };
 }
 

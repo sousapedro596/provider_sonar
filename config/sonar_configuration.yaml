@@ -19,7 +19,7 @@
 #Right limit of scanning sector
 /provider_sonar/sonar_driver/right_limit_ : 4000
 #Debug mode for the driver 
-/provider_sonar/sonar_driver/use_debug_mode_ : true
+/provider_sonar/sonar_driver/use_debug_mode_ : false
 #Simulate the sonar
 /provider_sonar/sonar_driver/simulate_ : false
 

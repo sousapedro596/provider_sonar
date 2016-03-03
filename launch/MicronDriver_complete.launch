@@ -4,10 +4,7 @@
 <rosparam command="load" file="$(find provider_sonar)/config/sonar_configuration.yaml"/>
 
 <!--Create a sonar driver node-->
-<node pkg="provider_sonar" type="provider_sonar_node" name="micron_driver" output="screen" />
-
-<!--Create a node parser -->
-<node pkg="provider_sonar" type="micron_driver_scanline_parser" name="Scanline_parser" output="screen" />
+<node pkg="provider_sonar" type="provider_sonar_node" name="sonar_node" output="screen" />
 
 <!--Set the frame for the Sonar -->
  <node pkg="tf" type="static_transform_publisher" name="Sonar_to_world" args="0.5 0.0 0.0 1.57 1.57 1.57 /sparus2 /Micron  100" />
