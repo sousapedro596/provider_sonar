@@ -148,7 +148,7 @@ void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
 
 //------------------------------------------------------------------------------
 //
-void SonarDriver::RegisterScanLineCallback(
+void SonarDriver::ScanLineCallback(
     std::function<void(float, float, std::vector<uint8_t>)> callback) {
   its_scanline_callback = callback;
 }

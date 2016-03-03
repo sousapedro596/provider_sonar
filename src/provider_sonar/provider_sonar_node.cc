@@ -42,9 +42,8 @@ namespace provider_sonar {
 ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     : nh_(nh), config_(nh_) {
   if (!config_.simulate) {
-    scan_line_pub_ = nh_->advertise<ScanLineMsgType>("scan_line", 100);
-    scan_line_sub_ = nh_->subscribe("/sonar_node/scan_line", 1,
-                                    &ProviderSonarNode::ScanLineCB, this);
+    scanline_sub_ = nh_->subscribe("/sonar_node/scanline", 1,
+                                   &ProviderSonarNode::ScanLineCB, this);
     point_cloud2_pub_ =
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
@@ -57,9 +56,9 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     reconfig_server_ = nh->advertiseService("Sonar_Reconfiguration",
                                             &ProviderSonarNode::Reconfig, this);
 
-    driver_->RegisterScanLineCallback(
-        std::bind(&ProviderSonarNode::Publish, this, std::placeholders::_1,
-                  std::placeholders::_2, std::placeholders::_3));
+    driver_->ScanLineCallback(std::bind(
+        &ProviderSonarNode::PublishPointCloud2, this, std::placeholders::_1,
+        std::placeholders::_2, std::placeholders::_3));
 
     uint8_t angle_step_size_byte = static_cast<uint8_t>(
         std::max(1, std::min(255, config_.angle_step_size)));
@@ -100,7 +99,6 @@ void ProviderSonarNode::Spin() {
 void ProviderSonarNode::ScanLineCB(
     const ScanLineMsgType::ConstPtr &scan_line_msg) {
   ROS_INFO("Scanline received");
-  PublishPointCloud2(scan_line_msg);
 }
 
 //------------------------------------------------------------------------------
@@ -116,9 +114,9 @@ bool ProviderSonarNode::Reconfig(
 
 //------------------------------------------------------------------------------
 //
-void ProviderSonarNode::Publish(AngleType scan_angle,
-                                StepType bin_distance_step,
-                                IntensityBinsRawType intensity_bins) {
+void ProviderSonarNode::PublishPointCloud2(
+    AngleType scan_angle, StepType bin_distance_step,
+    IntensityBinsRawType intensity_bins) {
   ScanLineMsgType::Ptr scan_line_msg(new ScanLineMsgType);
   scan_line_msg->header.stamp = ros::Time::now();
   scan_line_msg->header.frame_id = config_.frame_id;
@@ -134,13 +132,6 @@ void ProviderSonarNode::Publish(AngleType scan_angle,
     scan_line_msg->bins.push_back(bin);
   }
 
-  scan_line_pub_.publish(scan_line_msg);
-}
-
-//------------------------------------------------------------------------------
-//
-void ProviderSonarNode::PublishPointCloud2(
-    const ScanLineMsgType::ConstPtr &scan_line_msg) {
   sensor_msgs::PointCloud2 point_cloud_msg_;
   // - Copy ROS header
   point_cloud_msg_.header = scan_line_msg->header;
@@ -226,7 +217,8 @@ void ProviderSonarNode::Simulate() {
                                   config_.simulate_intensity_variance);
   }
 
-  Publish(scan_angle_, config_.simulate_bin_distance_step, intensity_bins);
+  PublishPointCloud2(scan_angle_, config_.simulate_bin_distance_step,
+                     intensity_bins);
 
   if (config_.simulate_use_manual_angle)
     scan_angle_ = config_.simulate_manual_angle;

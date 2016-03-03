@@ -93,13 +93,7 @@ class SonarDriver {
                    uint8_t step_angle_size, uint16_t left_limit,
                    uint16_t right_limit, bool debug_mode);
 
-  //! Get access to the scan lines that have been read by the sonar.
-  /*! Note that this method is thread safe and will lock the internal scan
-      line data structure, therefore one should call this method as
-      infrequently as possible */
-  std::map<float, std::vector<uint8_t>> scanLines();
-
-  void RegisterScanLineCallback(
+  void ScanLineCallback(
       std::function<void(float /*angle*/, float /*meters per bin*/,
                          std::vector<uint8_t> /*scanline*/)>);
 

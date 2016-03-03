@@ -84,10 +84,8 @@ class ProviderSonarNode {
      Message from the Sonar.
      It takes the Sonar scanline, formats it as a Scanline message and publishes
      it on the corresponding topic. */
-  void Publish(AngleType scan_angle, StepType bin_distance_step,
-               IntensityBinsRawType intensity_bins);
-
-  void PublishPointCloud2(const ScanLineMsgType::ConstPtr &scan_line_msg);
+  void PublishPointCloud2(AngleType scan_angle, StepType bin_distance_step,
+                          IntensityBinsRawType intensity_bins);
 
   void Simulate();
 
@@ -96,9 +94,7 @@ class ProviderSonarNode {
   // P R I V A T E   M E M B E R S
 
   ros::NodeHandlePtr nh_;
-  ros::Publisher scan_line_pub_;  // Create publisher for the sonar scanlines
-  // Create a service server to allow dynamic reconfiguration of the sonar
-  ros::Subscriber scan_line_sub_;      // Subscriber
+  ros::Subscriber scanline_sub_;       // Subscriber
   ros::Publisher point_cloud2_pub_;    // Publishers
   ros::ServiceServer reconfigserver_;  // Services
   ros::ServiceServer reconfig_server_;
@@ -108,7 +104,6 @@ class ProviderSonarNode {
 
   float scan_angle_;
 };
-
 }  // namespace provider_sonar
 
 #endif  // PROVIDER_SONAR_SONAR_NODE_H
