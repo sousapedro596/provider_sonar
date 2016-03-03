@@ -54,7 +54,7 @@ install:
   - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update -qq
-  - sudo apt-get install -qq -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin ros-$ROS_DISTRO-ros
+  - sudo apt-get install -qq -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin ros-$ROS_DISTRO-ros libeigen3-dev
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Setup rosdep
   - sudo rosdep init
@@ -66,6 +66,9 @@ install:
   - mv $CI_SOURCE_PATH ~/catkin_ws/src/$REPOSITORY_NAME
   - cd ~/catkin_ws/src
   - catkin_init_workspace
+  # Cloning dependencies
+  - git clone https://github.com/sonia-auv/lib_atlas.git -b develop
+  - git clone https://github.com/sonia-auv/sonia_msgs.git -b develop
   # Install dependencies
   - cd ~/catkin_ws/
   - rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
