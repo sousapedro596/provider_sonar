@@ -125,7 +125,7 @@ bool SonarDriver::Connect(std::string const &devName) {
 void SonarDriver::Configure() {
   mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, angle_step_size_,
                                   left_limit_, right_limit_);
-  serial_.writeVector(headCommandMsg.construct());
+  serial_.writeVector(headCommandMsg.Construct());
 }
 
 //------------------------------------------------------------------------------
@@ -362,7 +362,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtVersionData Message" << std::endl;
-    if (its_debug_mode_) parsedMsg.print();
+    if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     has_heard_mtAlive_ = true;
@@ -371,7 +371,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtAlive Message" << std::endl;
-    if (its_debug_mode_) parsedMsg.print();
+    if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
     has_heard_mtHeadData_ = true;
@@ -405,7 +405,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_)
       std::cout << std::endl
                 << "Received mtHeadData Message" << std::endl;
-    if (its_debug_mode_) parsedMsg.print();
+    if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtBBUserData) {
     if (its_debug_mode_)
       std::cout << std::endl

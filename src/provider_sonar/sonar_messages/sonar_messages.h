@@ -84,10 +84,10 @@ struct SonarMessage {
   std::vector<uint8_t> data;
   uint8_t line_feed;
 
-  //==============================================================================
+  //============================================================================
   // C / D T O R S   S E C T I O N
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   SonarMessage() {
     header = 0;
@@ -106,7 +106,7 @@ struct SonarMessage {
   //============================================================================
   // P U B L I C   M E T H O D S
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   bool LenghtCheck(uint8_t length) const {
     if (data.size() != length) {
@@ -117,7 +117,7 @@ struct SonarMessage {
     return true;
   }
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   bool IdCheck(MessageID id) const {
     if (id != this->id) {
@@ -128,7 +128,7 @@ struct SonarMessage {
     return true;
   }
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   bool IsByteEqual(uint8_t byte, uint8_t at) const {
     if (data.size() < at) {
@@ -199,7 +199,7 @@ struct mtVersionDataMsg {
   //============================================================================
   // P U B L I C   M E T H O D S
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   mtVersionDataMsg(SonarMessage const &msg) {
     msg.LenghtCheck(26);
@@ -227,10 +227,10 @@ struct mtVersionDataMsg {
     msg.IsByteEqual(0x0A, 25);
   }
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
-  void print() {
-    printf(
+  void Print() {
+    ROS_INFO(
         "mtVersionDataMsg: tx_node_ = %#x software_version_ = %#x info_bits_ = "
         "%#x uid_ = %#x "
         "program_length_ = %d checksum_ = %d\n",
@@ -262,7 +262,7 @@ struct mtAliveMsg {
   //============================================================================
   // P U B L I C   M E T H O D S
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   mtAliveMsg(SonarMessage const &msg) {
     msg.IsByteEqual('@', 1);
@@ -292,11 +292,10 @@ struct mtAliveMsg {
     msg.IsByteEqual(0x0A, 22);
   };
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
-  void print() {
-    // TODO: ROSINFO or cout?
-    printf(
+  void Print() {
+    ROS_INFO(
         "mtAliveMsg: tx_node_ = %#x head_time_msec_ = %d motor_pos_ = %d "
         "in_centre_ = %d "
         "centered_ = %d motoring_ = %d motor_on_"
@@ -328,20 +327,23 @@ static std::vector<uint8_t> mtRebootMsg = {
 //------------------------------------------------------------------------------
 //
 struct mtHeadCommandMsg {
-  //==============================================================================
+  //============================================================================
   // C / D T O R S   S E C T I O N
 
-  //------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   //
   mtHeadCommandMsg(uint16_t n_bins = 200, float range = 10, float vos = 1500,
-                   uint8_t angle_step_size = 32, uint16_t left_limit = 1,
-                   uint16_t right_limit = 6399)
+                   uint16_t left_limit = 1, uint16_t right_limit = 6399,
+                   uint8_t step_angle_size = 16, uint8_t ad_span = 51,
+                   uint8_t ad_low = 8)
       : n_bins(n_bins),
         range(range),
         vos(vos),
-        step_angle_size(angle_step_size),
         left_limit(left_limit),
-        right_limit(right_limit) {}
+        right_limit(right_limit),
+        step_angle_size(step_angle_size),
+        ad_span(ad_span),
+        ad_low(ad_low) {}
 
   //============================================================================
   // P U B L I C   M E M B E R S
@@ -360,11 +362,14 @@ struct mtHeadCommandMsg {
      Ultimate: 0.225° = 4 */
   uint8_t step_angle_size;
 
+  uint8_t ad_span;  // Set the width of the sampling window in dB
+  uint8_t ad_low;   // Set the low bound of the sampling window in dB
+
   //============================================================================
   // P U B L I C   M E T H O D S
 
   // Construct the message vector from the given parameters
-  std::vector<uint8_t> construct() {
+  std::vector<uint8_t> Construct() {
     // This is the skeleton message, we overwrite some of those bytes
     // with our parameters. We start this vector with 0x00 to match the
     // datasheet bytes numerotation.
@@ -405,6 +410,9 @@ struct mtHeadCommandMsg {
     uint16_t ad_interval =
         static_cast<uint16_t>(std::ceil(sample_time / 640.0 * 1000.0));
 
+    msg[42] = ad_span;
+    msg[43] = ad_low;
+
     msg[52] = static_cast<uint8_t>(ad_interval & 0x00FF);
     msg[53] = static_cast<uint8_t>(ad_interval >> 8);
 
@@ -415,24 +423,26 @@ struct mtHeadCommandMsg {
 
 //------------------------------------------------------------------------------
 //
-static std::vector<uint8_t> mtSendDataMsg = {0x40,   // header
-                                             0x30,   // hex_length
-                                             0x30,   // hex_length
-                                             0x30,   // hex_length
-                                             0x43,   // hex_length
-                                             0x0C,   // binairy_length
-                                             0x00,   // binairy_length
-                                             0xFF,   // tx_node
-                                             0x02,   // rx_node
-                                             0x07,   // n_byte
-                                             0x19,   // mtSendData
-                                             0x80,   // message_sequence
-                                             0x02,   // node
-                                             0x00,   // current_time
-                                             0x00,   // current_time
-                                             0x00,   // current_time
-                                             0x00,   // current_time
-                                             0x0A};  // line_feed
+static std::vector<uint8_t> mtSendDataMsg = {
+    0x40,  // header
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x30,  // hex_length
+    0x43,  // hex_length
+    0x0C,  // binairy_length
+    0x00,  // binairy_length
+    0xFF,  // tx_node
+    0x02,  // rx_node
+    0x07,  // n_byte
+    0x19,  // mtSendData
+    0x80,  // message_sequence
+    0x02,  // node
+    0x00,  // current_time
+    0x00,  // current_time
+    0x00,  // current_time
+    0x00,  // current_time
+    0x0A   // line_feed
+};
 
 //------------------------------------------------------------------------------
 //
@@ -494,7 +504,7 @@ struct mtHeadDataMsg {
 
   //============================================================================
   // P U B L I C   M E T H O D S
-  void print() {
+  void Print() {
     std::cout << "mtHeadDataMsg: " << std::endl;
     std::cout << "   packetInSequence: " << int(packet_sequence) << std::endl;
     std::cout << "   isLast?: " << is_last_in_sequence << std::endl;

@@ -4,6 +4,7 @@
   <version>0.0.1</version>
   <description>The provider_sonar package</description>
 
+  <maintainer email="francis.masse05@gmail.com">Francis Massey</maintainer>
   <maintainer email="dozois.a@gmail.com">Antoine Dozois</maintainer>
 
   <license>GPLv3</license>

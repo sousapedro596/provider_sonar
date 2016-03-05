@@ -42,8 +42,6 @@ namespace provider_sonar {
 ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     : nh_(nh), config_(nh_) {
   if (!config_.simulate) {
-    scanline_sub_ = nh_->subscribe("/sonar_node/scanline", 1,
-                                   &ProviderSonarNode::ScanLineCB, this);
     point_cloud2_pub_ =
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
@@ -53,15 +51,21 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         static_cast<uint16_t>(config_.left_limit),
         static_cast<uint16_t>(config_.right_limit), config_.use_debug_mode);
 
-    reconfig_server_ = nh->advertiseService("Sonar_Reconfiguration",
-                                            &ProviderSonarNode::Reconfig, this);
+    sonar_reconfig_server_ =
+        nh->advertiseService("Sonar_Reconfiguration",
+                             &ProviderSonarNode::SonarReconfiguration, this);
+
+    simulation_reconfig_server_ = nh->advertiseService(
+        "Sonar_Reconfiguration", &ProviderSonarNode::SimulationReconfiguration,
+        this);
+
+    point_cloud_reconfig_server_ = nh->advertiseService(
+        "Sonar_Reconfiguration", &ProviderSonarNode::PointCloudReconfiguration,
+        this);
 
     driver_->ScanLineCallback(std::bind(
         &ProviderSonarNode::PublishPointCloud2, this, std::placeholders::_1,
         std::placeholders::_2, std::placeholders::_3));
-
-    uint8_t angle_step_size_byte = static_cast<uint8_t>(
-        std::max(1, std::min(255, config_.angle_step_size)));
 
     if (!driver_->Connect(config_.port.c_str())) {
       ROS_ERROR("Could not connect to device; simulating instead.");
@@ -95,15 +99,7 @@ void ProviderSonarNode::Spin() {
 
 //------------------------------------------------------------------------------
 //
-// Callback when a scanline is received
-void ProviderSonarNode::ScanLineCB(
-    const ScanLineMsgType::ConstPtr &scan_line_msg) {
-  ROS_INFO("Scanline received");
-}
-
-//------------------------------------------------------------------------------
-//
-bool ProviderSonarNode::Reconfig(
+bool ProviderSonarNode::SonarReconfiguration(
     provider_sonar::sonar_reconfiguration::Request &req,
     provider_sonar::sonar_reconfiguration::Response &resp) {
   driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
@@ -111,6 +107,18 @@ bool ProviderSonarNode::Reconfig(
                        req.left_limit, req.right_limit, req.debug_mode);
   return true;
 }
+
+//------------------------------------------------------------------------------
+//
+bool ProviderSonarNode::SimulationReconfiguration(
+    provider_sonar::simulation_reconfiguration::Request &req,
+    provider_sonar::simulation_reconfiguration::Response &resp) {}
+
+//------------------------------------------------------------------------------
+//
+bool ProviderSonarNode::PointCloudReconfiguration(
+    provider_sonar::point_cloud_reconfiguration::Request &req,
+    provider_sonar::point_cloud_reconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //

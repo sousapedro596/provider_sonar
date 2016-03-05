@@ -1,0 +1,11 @@
+bool simulate
+uint16 n_bins
+float64 bin_distance_step
+float64 distance
+float64 intensity
+float64 intensity_variance
+bool use_manual_angle
+float64 manual_angle
+float64 scan_angle_velocity
+---
+bool result

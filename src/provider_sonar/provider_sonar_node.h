@@ -37,6 +37,8 @@
 #include "std_msgs/String.h"
 #include <provider_sonar/ScanLine.h>
 #include <provider_sonar/sonar_reconfiguration.h>
+#include <provider_sonar/simulation_reconfiguration.h>
+#include <provider_sonar/point_cloud_reconfiguration.h>
 #include <sstream>
 #include "stdint.h"
 #include <sensor_msgs/PointCloud2.h>
@@ -49,7 +51,7 @@ namespace provider_sonar {
 
 class ProviderSonarNode {
  public:
-  //==========================================================================
+  //============================================================================
   // T Y P E D E F   A N D   E N U M
 
   using Ptr = std::shared_ptr<ProviderSonarNode>;
@@ -63,27 +65,41 @@ class ProviderSonarNode {
   typedef float AngleType;
   typedef std::vector<uint8_t> IntensityBinsRawType;
 
-  //==========================================================================
+  //============================================================================
   // P U B L I C   C / D T O R S
 
   ProviderSonarNode(ros::NodeHandlePtr &nh);
 
   ~ProviderSonarNode();
 
-  //==========================================================================
+  //============================================================================
   // P U B L I C   M E T H O D S
 
   void Spin();
 
-  void ScanLineCB(const ScanLineMsgType::ConstPtr &scan_line_msg);
+  bool SonarReconfiguration(
+      provider_sonar::sonar_reconfiguration::Request &req,
+      provider_sonar::sonar_reconfiguration::Response &resp);
 
-  bool Reconfig(provider_sonar::sonar_reconfiguration::Request &req,
-                provider_sonar::sonar_reconfiguration::Response &resp);
+  bool SimulationReconfiguration(
+      provider_sonar::simulation_reconfiguration::Request &req,
+      provider_sonar::simulation_reconfiguration::Response &resp);
 
-  /* This function is a callback associated with the reception of a Scanline
-     Message from the Sonar.
-     It takes the Sonar scanline, formats it as a Scanline message and publishes
-     it on the corresponding topic. */
+  bool PointCloudReconfiguration(
+      provider_sonar::point_cloud_reconfiguration::Request &req,
+      provider_sonar::point_cloud_reconfiguration::Response &resp);
+
+  /**
+   * This function is a callback associated with the reception of a scanline
+   * message from the sonar.
+   *
+   * It takes the sonar scanline, formats it as a scanline message and publishes
+   * it on the corresponding topic.
+   *
+   * \param scan_angle  Current angle of the sonar head
+   * \param bin_distance_step  The distance between bins
+   * \param intensity_bins  Vector containing all bins intensity
+   */
   void PublishPointCloud2(AngleType scan_angle, StepType bin_distance_step,
                           IntensityBinsRawType intensity_bins);
 
@@ -94,10 +110,10 @@ class ProviderSonarNode {
   // P R I V A T E   M E M B E R S
 
   ros::NodeHandlePtr nh_;
-  ros::Subscriber scanline_sub_;       // Subscriber
-  ros::Publisher point_cloud2_pub_;    // Publishers
-  ros::ServiceServer reconfigserver_;  // Services
-  ros::ServiceServer reconfig_server_;
+  ros::Publisher point_cloud2_pub_;
+  ros::ServiceServer sonar_reconfig_server_;
+  ros::ServiceServer simulation_reconfig_server_;
+  ros::ServiceServer point_cloud_reconfig_server_;
 
   SonarConfiguration config_;
   SonarDriver *driver_;

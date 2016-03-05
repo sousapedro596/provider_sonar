@@ -1,9 +1,11 @@
 uint16 n_bins
 float64 range
 float64 vos
-uint8 step_angle_size
 uint16 left_limit
 uint16 right_limit
+uint8 step_angle_size
+uint8 ad_span
+uint8 ad_low
 bool debug_mode
 ---
-int8 result
+bool result

@@ -47,7 +47,8 @@ add_service_files(
         DIRECTORY srv
         FILES
         sonar_reconfiguration.srv
-        scanline_parser_reconfig.srv
+        simulation_reconfiguration.srv
+        point_cloud_reconfiguration.srv
 )
 
 generate_messages( DEPENDENCIES std_msgs )
