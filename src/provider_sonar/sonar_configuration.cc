@@ -44,6 +44,8 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       angle_step_size(16),
       left_limit(2400),
       right_limit(4000),
+      ad_span(83),
+      ad_low(8),
       use_debug_mode(false),
       simulate(false),
       simulate_n_bins(400),
@@ -72,34 +74,35 @@ SonarConfiguration::~SonarConfiguration() {}
 //------------------------------------------------------------------------------
 //
 void SonarConfiguration::DeserializeConfiguration() {
-  FindParameter("/sonar_driver/frame_id_", frame_id);
-  FindParameter("/sonar_driver/port_", port);
-  FindParameter("/sonar_driver/n_bins_", n_bins);
-  FindParameter("/sonar_driver/range_", range);
-  FindParameter("/sonar_driver/vos_", vos);
-  FindParameter("/sonar_driver/angle_step_size_", angle_step_size);
-  FindParameter("/sonar_driver/left_limit_", left_limit);
-  FindParameter("/sonar_driver/right_limit_", right_limit);
-  FindParameter("/sonar_driver/use_debug_mode_", use_debug_mode);
-  FindParameter("/sonar_driver/simulate_", simulate);
-  FindParameter("/sonar_driver/simulate_n_bins_", simulate_n_bins);
-  FindParameter("/sonar_driver/simulate_bin_distance_step_",
+  FindParameter("/sonar/frame_id_", frame_id);
+  FindParameter("/sonar/port_", port);
+  FindParameter("/sonar/n_bins_", n_bins);
+  FindParameter("/sonar/range_", range);
+  FindParameter("/sonar/vos_", vos);
+  FindParameter("/sonar/angle_step_size_", angle_step_size);
+  FindParameter("/sonar/left_limit_", left_limit);
+  FindParameter("/sonar/right_limit_", right_limit);
+  FindParameter("/sonar/ad_span_", ad_span);
+  FindParameter("/sonar/ad_low_", ad_low);
+  FindParameter("/sonar/use_debug_mode_", use_debug_mode);
+  FindParameter("/simulate/simulate_", simulate);
+  FindParameter("/simulate/simulate_n_bins_", simulate_n_bins);
+  FindParameter("/simulate/simulate_bin_distance_step_",
                 simulate_bin_distance_step);
-  FindParameter("/sonar_driver/simulate_distance_", simulate_distance);
-  FindParameter("/sonar_driver/simulate_intensity_variance_",
+  FindParameter("/simulate/simulate_distance_", simulate_distance);
+  FindParameter("/simulate/simulate_intensity_variance_",
                 simulate_intensity_variance);
-  FindParameter("/sonar_driver/simulate_use_manual_angle_",
+  FindParameter("/simulate/simulate_use_manual_angle_",
                 simulate_use_manual_angle);
-  FindParameter("/sonar_driver/simulate_manual_angle_", simulate_manual_angle);
-  FindParameter("/sonar_driver/simulate_scan_angle_velocity_",
+  FindParameter("/simulate/simulate_manual_angle_", simulate_manual_angle);
+  FindParameter("/simulate/simulate_scan_angle_velocity_",
                 simulate_scan_angle_velocity);
-  FindParameter("/scanline_parser/use_point_cloud_threshold_",
+  FindParameter("/point_cloud/use_point_cloud_threshold_",
                 use_point_cloud_threshold);
-  FindParameter("/scanline_parser/min_distance_threshold_",
-                min_distance_threshold);
-  FindParameter("/scanline_parser/min_point_cloud_intensity_threshold_",
+  FindParameter("/point_cloud/min_distance_threshold_", min_distance_threshold);
+  FindParameter("/point_cloud/min_point_cloud_intensity_threshold_",
                 min_point_cloud_intensity_threshold);
-  FindParameter("/scanline_parser/only_first_point_", only_first_point);
+  FindParameter("/point_cloud/only_first_point_", only_first_point);
 }
 
 //------------------------------------------------------------------------------

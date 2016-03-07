@@ -61,6 +61,8 @@ class SonarConfiguration {
   int angle_step_size;
   int left_limit;
   int right_limit;
+  int ad_span;
+  int ad_low;
   bool use_debug_mode;
   bool simulate;
 

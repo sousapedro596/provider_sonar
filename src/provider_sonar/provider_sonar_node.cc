@@ -49,19 +49,21 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
         static_cast<uint8_t>(config_.angle_step_size),
         static_cast<uint16_t>(config_.left_limit),
-        static_cast<uint16_t>(config_.right_limit), config_.use_debug_mode);
+        static_cast<uint16_t>(config_.right_limit),
+        static_cast<uint8_t>(config_.ad_span),
+        static_cast<uint8_t>(config_.ad_low), config_.use_debug_mode);
 
     sonar_reconfig_server_ =
         nh->advertiseService("Sonar_Reconfiguration",
                              &ProviderSonarNode::SonarReconfiguration, this);
 
     simulation_reconfig_server_ = nh->advertiseService(
-        "Sonar_Reconfiguration", &ProviderSonarNode::SimulationReconfiguration,
-        this);
+        "Simulation_Reconfiguration",
+        &ProviderSonarNode::SimulationReconfiguration, this);
 
     point_cloud_reconfig_server_ = nh->advertiseService(
-        "Sonar_Reconfiguration", &ProviderSonarNode::PointCloudReconfiguration,
-        this);
+        "Point_Cloud_Reconfiguration",
+        &ProviderSonarNode::PointCloudReconfiguration, this);
 
     driver_->ScanLineCallback(std::bind(
         &ProviderSonarNode::PublishPointCloud2, this, std::placeholders::_1,
@@ -104,7 +106,8 @@ bool ProviderSonarNode::SonarReconfiguration(
     provider_sonar::sonar_reconfiguration::Response &resp) {
   driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
                        static_cast<float>(req.vos), req.step_angle_size,
-                       req.left_limit, req.right_limit, req.debug_mode);
+                       req.left_limit, req.right_limit, req.ad_span, req.ad_low,
+                       req.debug_mode);
   return true;
 }
 

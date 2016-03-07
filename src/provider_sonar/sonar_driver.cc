@@ -33,7 +33,8 @@ namespace provider_sonar {
 //
 SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
                          uint8_t angle_step_size, uint16_t left_limit,
-                         uint16_t right_limit, bool debug_mode)
+                         uint16_t right_limit, uint8_t ad_span, uint8_t ad_low,
+                         bool debug_mode)
     : its_serial_thread_(),
       its_processing_thread_(),
       its_state_(WaitingForAt),
@@ -51,7 +52,7 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_debug_mode_(debug_mode) {
   ResetMessage();
   SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit,
-                debug_mode);
+                ad_span, ad_low, debug_mode);
 }
 
 //------------------------------------------------------------------------------
@@ -82,13 +83,16 @@ void SonarDriver::Disconnect() {
 //
 void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
                                 uint8_t angle_step_size, uint16_t left_limit,
-                                uint16_t right_limit, bool debug_mode) {
+                                uint16_t right_limit, uint8_t ad_span,
+                                uint8_t ad_low, bool debug_mode) {
   n_bins_ = n_bins;
   range_ = range;
   vos_ = vos;
   angle_step_size_ = angle_step_size;
   left_limit_ = left_limit;
   right_limit_ = right_limit;
+  ad_span_ = ad_span;
+  ad_low_ = ad_low;
   its_debug_mode_ = debug_mode;
 }
 
@@ -123,8 +127,9 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, angle_step_size_,
-                                  left_limit_, right_limit_);
+  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
+                                  right_limit_, angle_step_size_, ad_span_,
+                                  ad_low_);
   serial_.writeVector(headCommandMsg.Construct());
 }
 
@@ -132,10 +137,11 @@ void SonarDriver::Configure() {
 //
 void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
                               uint8_t step_angle_size, uint16_t left_limit,
-                              uint16_t right_limit, bool debug_mode) {
+                              uint16_t right_limit, uint8_t ad_span,
+                              uint8_t ad_low, bool debug_mode) {
   // Load the new values
   SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit,
-                debug_mode);
+                ad_span, ad_low, debug_mode);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   state_machine_semaphore_ = red;

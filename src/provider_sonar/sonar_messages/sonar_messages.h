@@ -332,10 +332,10 @@ struct mtHeadCommandMsg {
 
   //----------------------------------------------------------------------------
   //
-  mtHeadCommandMsg(uint16_t n_bins = 200, float range = 10, float vos = 1500,
-                   uint16_t left_limit = 1, uint16_t right_limit = 6399,
-                   uint8_t step_angle_size = 16, uint8_t ad_span = 51,
-                   uint8_t ad_low = 8)
+  mtHeadCommandMsg(uint16_t n_bins = 400, float range = 8.0f,
+                   float vos = 1500.0f, uint16_t left_limit = 2400,
+                   uint16_t right_limit = 4000, uint8_t step_angle_size = 16,
+                   uint8_t ad_span = 83, uint8_t ad_low = 8)
       : n_bins(n_bins),
         range(range),
         vos(vos),
@@ -500,6 +500,8 @@ struct mtHeadDataMsg {
   RangeUnits range_units;
   float step_angle_size;
   float transducer_bearing;  // The current bearing of the sonar head
+  uint8_t ad_span;
+  uint8_t ad_low;
   std::vector<uint8_t> scanline;
 
   //============================================================================
@@ -522,13 +524,9 @@ struct mtHeadDataMsg {
     std::cout << "   Step Size (degrees): " << step_angle_size << std::endl;
     std::cout << "   Current Bearing (degrees): " << transducer_bearing
               << std::endl;
-
+    std::cout << "   AD Span :" << ad_span << std::endl;
+    std::cout << "   AD Low :" << ad_low << std::endl;
     std::cout << "   Scanline size: " << scanline.size() << std::endl;
-
-    //    std::cout << "   Scanline [ ";
-    //    for (uint8_t c : scanline)
-    //      std::cout << std::hex << static_cast<int>(c) << std::dec<< " ";
-    //    std::cout << " ]" << std::endl;
   }
 
   mtHeadDataMsg(SonarMessage const &msg) {
@@ -612,8 +610,14 @@ struct mtHeadDataMsg {
     transducer_bearing =
         (msg.data[41] | (msg.data[42]) << 8) / 16.0f * 180.0f / 200.0f;
 
+    // AD Span is sent back to user in dB
+    ad_span = static_cast<uint8_t>(255 * msg.data[30] / 80);
+
+    // AD Low is sent back to user in dB
+    ad_low = static_cast<uint8_t>(255 * msg.data[31] / 80);
+
     uint16_t data_bytes =
-        (uint16_t(msg.data[43]) | (uint16_t(msg.data[44]) << 8));
+        static_cast<uint16_t>((msg.data[43]) | (uint16_t(msg.data[44]) << 8));
 
     // If adc8on = 1, data_bytes = n_bin
     // Else, data_bytes = n_bin / 2
