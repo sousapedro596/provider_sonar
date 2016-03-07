@@ -54,15 +54,15 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         static_cast<uint8_t>(config_.ad_low), config_.use_debug_mode);
 
     sonar_reconfig_server_ =
-        nh->advertiseService("Sonar_Reconfiguration",
+        nh->advertiseService("sonar_reconfiguration",
                              &ProviderSonarNode::SonarReconfiguration, this);
 
     simulation_reconfig_server_ = nh->advertiseService(
-        "Simulation_Reconfiguration",
+        "simulation_reconfiguration",
         &ProviderSonarNode::SimulationReconfiguration, this);
 
     point_cloud_reconfig_server_ = nh->advertiseService(
-        "Point_Cloud_Reconfiguration",
+        "point_cloud_reconfiguration",
         &ProviderSonarNode::PointCloudReconfiguration, this);
 
     driver_->ScanLineCallback(std::bind(

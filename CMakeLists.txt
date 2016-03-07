@@ -46,9 +46,9 @@ add_message_files(
 add_service_files(
         DIRECTORY srv
         FILES
-        sonar_reconfiguration.srv
-        simulation_reconfiguration.srv
-        point_cloud_reconfiguration.srv
+        SonarReconfiguration.srv
+        SimulationReconfiguration.srv
+        PointCloudReconfiguration.srv
 )
 
 generate_messages( DEPENDENCIES std_msgs )
