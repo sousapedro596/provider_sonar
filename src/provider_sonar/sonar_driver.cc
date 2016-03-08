@@ -389,16 +389,16 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     float range_meters;
     switch (parsedMsg.range_units) {
       case mtHeadDataMsg::meters:
-        range_meters = parsedMsg.ranges_scale;
+        range_meters = parsedMsg.range_scale;
         break;
       case mtHeadDataMsg::feet:
-        range_meters = parsedMsg.ranges_scale * 0.3048;
+        range_meters = parsedMsg.range_scale * 0.3048;
         break;
       case mtHeadDataMsg::fathoms:
-        range_meters = parsedMsg.ranges_scale * 1.8288;
+        range_meters = parsedMsg.range_scale * 1.8288;
         break;
       case mtHeadDataMsg::yards:
-        range_meters = parsedMsg.ranges_scale * 0.9144;
+        range_meters = parsedMsg.range_scale * 0.9144;
         break;
     }
 

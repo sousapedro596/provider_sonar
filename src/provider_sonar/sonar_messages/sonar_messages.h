@@ -110,8 +110,7 @@ struct SonarMessage {
   //
   bool LenghtCheck(uint8_t length) const {
     if (data.size() != length) {
-      std::cerr << "Invalid message length (" << data.size() << " != " << length
-                << ")" << std::endl;
+      ROS_ERROR("Invalid message length (%lu != %u)", data.size(), length);
       return false;
     }
     return true;
@@ -121,8 +120,8 @@ struct SonarMessage {
   //
   bool IdCheck(MessageID id) const {
     if (id != this->id) {
-      std::cerr << "Invalid message type (" << id << " != " << id << ")"
-                << std::endl;
+      ROS_ERROR("Invalid message type (%d != %d)", static_cast<int>(id),
+                static_cast<int>(this->id));
       return false;
     }
     return true;
@@ -132,12 +131,11 @@ struct SonarMessage {
   //
   bool IsByteEqual(uint8_t byte, uint8_t at) const {
     if (data.size() < at) {
-      std::cerr << "Message too short" << std::endl;
+      ROS_ERROR("Message too short");
       return false;
     }
     if (data[at] != byte) {
-      std::cerr << "Expected " << std::hex << byte << std::dec << " @" << at
-                << " but got " << std::hex << data[at] << std::endl;
+      ROS_ERROR("Expected %X @ %u but got %X", byte, at, data[at]);
       return false;
     }
     return true;
@@ -499,7 +497,7 @@ struct mtHeadDataMsg {
   HeadStatus head_status;
   SweepCode sweep_code;
   HeadControl head_control;
-  float ranges_scale;
+  float range_scale;
   RangeUnits range_units;
   float step_angle_size;
   float transducer_bearing;  // The current bearing of the sonar head
@@ -510,27 +508,30 @@ struct mtHeadDataMsg {
   //============================================================================
   // P U B L I C   M E T H O D S
   void Print() {
-    std::cout << "mtHeadDataMsg: " << std::endl;
-    std::cout << "   packetInSequence: " << static_cast<int>(packet_sequence)
-              << std::endl;
-    std::cout << "   isLast?: " << is_last_in_sequence << std::endl;
-    std::cout << "   Error?: " << head_status.motor_error << std::endl;
-    std::cout << "   Sweep Code: " << sweep_code << std::endl;
-    std::cout << "   Adc8on?: " << head_control.adc8on << std::endl;
-    std::cout << "   Continuos Scan?: " << head_control.cont << std::endl;
-    std::cout << "   scanright?: " << head_control.scan_right << std::endl;
-    std::cout << "   invert?: " << head_control.invert << std::endl;
-    std::cout << "   motoff?: " << head_control.motor_off << std::endl;
-    std::cout << "   txoff?: " << head_control.tx_off << std::endl;
-    std::cout << "   spare?: " << head_control.spare << std::endl;
-    std::cout << "   Range Scale: " << ranges_scale << std::endl;
-    std::cout << "   Range Scale Units: " << range_units << std::endl;
-    std::cout << "   Step Size (degrees): " << step_angle_size << std::endl;
-    std::cout << "   Current Bearing (degrees): " << transducer_bearing
-              << std::endl;
-    std::cout << "   AD Span :" << static_cast<int>(ad_span) << std::endl;
-    std::cout << "   AD Low :" << static_cast<int>(ad_low) << std::endl;
-    std::cout << "   Scanline size: " << scanline.size() << std::endl;
+    ROS_INFO("mtHeadDataMsg: ");
+    ROS_INFO("  packet_sequence: %d", static_cast<int>(packet_sequence));
+    ROS_INFO("  is_last_in_sequence : %s",
+             is_last_in_sequence ? "true" : "false");
+    ROS_INFO("  head_status/motor_erro : %s",
+             head_status.motor_error ? "true" : "false");
+    ROS_INFO("  sweep_code : %d", sweep_code);
+    ROS_INFO("  head_control/adc8on : %s",
+             head_control.adc8on ? "true" : "false");
+    ROS_INFO("  head_control/cont : %s", head_control.cont ? "true" : "false");
+    ROS_INFO("  head_control/scan_right : %s",
+             head_control.scan_right ? "true" : "false");
+    ROS_INFO("  head_control/invert : %s",
+             head_control.invert ? "true" : "false");
+    ROS_INFO("  head_control/motor_off : %s",
+             head_control.motor_off ? "true" : "false");
+    ROS_INFO("  head_control/tx_off : %s",
+             head_control.tx_off ? "true" : "false");
+    ROS_INFO("  range_scale : %f", range_scale);
+    ROS_INFO("  step_angle_size (Degree) : %f", step_angle_size);
+    ROS_INFO("  transducer_bearing (Degree) : %f", transducer_bearing);
+    ROS_INFO("  ad_span : %d", static_cast<int>(ad_span));
+    ROS_INFO("  ad_low : %d", static_cast<int>(ad_low));
+    ROS_INFO("  scanline.size : %lu", scanline.size());
   }
 
   mtHeadDataMsg(SonarMessage const &msg) {
@@ -584,10 +585,10 @@ struct mtHeadDataMsg {
     head_control.reply_thr = head_control_bitset[14];
     head_control.ignore_sensor = head_control_bitset[15];
 
-    ranges_scale = ((static_cast<uint16_t>(msg.data[21]) |
-                     (static_cast<uint16_t>(msg.data[22]) << 8)) &
-                    0xC0FF) /
-                   10;
+    range_scale = ((static_cast<uint16_t>(msg.data[21]) |
+                    (static_cast<uint16_t>(msg.data[22]) << 8)) &
+                   0xC0FF) /
+                  10;
 
     switch (msg.data[22] >> 6) {
       case 0:
