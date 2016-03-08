@@ -335,7 +335,7 @@ struct mtHeadCommandMsg {
   mtHeadCommandMsg(uint16_t n_bins = 400, float range = 8.0f,
                    float vos = 1500.0f, uint16_t left_limit = 2400,
                    uint16_t right_limit = 4000, uint8_t step_angle_size = 16,
-                   uint8_t ad_span = 83, uint8_t ad_low = 8)
+                   uint8_t ad_span = 15, uint8_t ad_low = 26)
       : n_bins(n_bins),
         range(range),
         vos(vos),
@@ -410,8 +410,11 @@ struct mtHeadCommandMsg {
     uint16_t ad_interval =
         static_cast<uint16_t>(std::ceil(sample_time / 640.0 * 1000.0));
 
-    msg[42] = ad_span;
-    msg[43] = ad_low;
+    // AD Span is sent back to user in dB
+    msg[42] = static_cast<uint8_t>(255 * ad_span / 80);
+
+    // AD Low is sent back to user in dB
+    msg[43] = static_cast<uint8_t>(255 * ad_low / 80);
 
     msg[52] = static_cast<uint8_t>(ad_interval & 0x00FF);
     msg[53] = static_cast<uint8_t>(ad_interval >> 8);
@@ -508,7 +511,8 @@ struct mtHeadDataMsg {
   // P U B L I C   M E T H O D S
   void Print() {
     std::cout << "mtHeadDataMsg: " << std::endl;
-    std::cout << "   packetInSequence: " << int(packet_sequence) << std::endl;
+    std::cout << "   packetInSequence: " << static_cast<int>(packet_sequence)
+              << std::endl;
     std::cout << "   isLast?: " << is_last_in_sequence << std::endl;
     std::cout << "   Error?: " << head_status.motor_error << std::endl;
     std::cout << "   Sweep Code: " << sweep_code << std::endl;
@@ -524,8 +528,8 @@ struct mtHeadDataMsg {
     std::cout << "   Step Size (degrees): " << step_angle_size << std::endl;
     std::cout << "   Current Bearing (degrees): " << transducer_bearing
               << std::endl;
-    std::cout << "   AD Span :" << ad_span << std::endl;
-    std::cout << "   AD Low :" << ad_low << std::endl;
+    std::cout << "   AD Span :" << static_cast<int>(ad_span) << std::endl;
+    std::cout << "   AD Low :" << static_cast<int>(ad_low) << std::endl;
     std::cout << "   Scanline size: " << scanline.size() << std::endl;
   }
 
@@ -611,10 +615,10 @@ struct mtHeadDataMsg {
         (msg.data[41] | (msg.data[42]) << 8) / 16.0f * 180.0f / 200.0f;
 
     // AD Span is sent back to user in dB
-    ad_span = static_cast<uint8_t>(255 * msg.data[30] / 80);
+    ad_span = static_cast<uint8_t>(msg.data[30] / 255.0f * 80.0f);
 
     // AD Low is sent back to user in dB
-    ad_low = static_cast<uint8_t>(255 * msg.data[31] / 80);
+    ad_low = static_cast<uint8_t>(msg.data[31] / 255.0f * 80.0f);
 
     uint16_t data_bytes =
         static_cast<uint16_t>((msg.data[43]) | (uint16_t(msg.data[44]) << 8));
