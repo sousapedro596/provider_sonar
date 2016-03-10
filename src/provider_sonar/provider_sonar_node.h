@@ -59,7 +59,7 @@ class ProviderSonarNode {
   using PtrList = std::vector<ProviderSonarNode::Ptr>;
   using ConstPtrList = std::vector<ProviderSonarNode::ConstPtr>;
 
-  typedef ScanLine ScanLineMsgType;
+  typedef ScanLine ScanlineMsgType;
   typedef IntensityBin IntensityBinMsgType;
   typedef float StepType;
   typedef float AngleType;
