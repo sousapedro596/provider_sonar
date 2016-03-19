@@ -248,12 +248,6 @@ void SonarDriver::ProcessingThreadMethod() {
             has_heard_mtHeadData_ = false;
           }
           break;
-
-          // Transition to configuring in case the sonar reports lacking
-          // parameters
-          if (!has_params_) {
-            state_ = configuring;
-          }
       }
     } else {
       usleep(10);
