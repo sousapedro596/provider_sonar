@@ -102,8 +102,8 @@ void ProviderSonarNode::Spin() {
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::SonarReconfiguration(
-    provider_sonar::sonar_reconfiguration::Request &req,
-    provider_sonar::sonar_reconfiguration::Response &resp) {
+    provider_sonar::SonarReconfiguration::Request &req,
+    provider_sonar::SonarReconfiguration::Response &resp) {
   driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
                        static_cast<float>(req.vos), req.step_angle_size,
                        req.left_limit, req.right_limit, req.ad_span, req.ad_low,
@@ -114,14 +114,14 @@ bool ProviderSonarNode::SonarReconfiguration(
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::SimulationReconfiguration(
-    provider_sonar::simulation_reconfiguration::Request &req,
-    provider_sonar::simulation_reconfiguration::Response &resp) {}
+    provider_sonar::SimulationReconfiguration::Request &req,
+    provider_sonar::SimulationReconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::PointCloudReconfiguration(
-    provider_sonar::point_cloud_reconfiguration::Request &req,
-    provider_sonar::point_cloud_reconfiguration::Response &resp) {}
+    provider_sonar::PointCloudReconfiguration::Request &req,
+    provider_sonar::PointCloudReconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //

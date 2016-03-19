@@ -36,9 +36,9 @@
 #include <ros/ros.h>
 #include "std_msgs/String.h"
 #include <provider_sonar/ScanLine.h>
-#include <provider_sonar/sonar_reconfiguration.h>
-#include <provider_sonar/simulation_reconfiguration.h>
-#include <provider_sonar/point_cloud_reconfiguration.h>
+#include <provider_sonar/SonarReconfiguration.h>
+#include <provider_sonar/SimulationReconfiguration.h>
+#include <provider_sonar/PointCloudReconfiguration.h>
 #include <sstream>
 #include "stdint.h"
 #include <sensor_msgs/PointCloud2.h>
@@ -78,16 +78,16 @@ class ProviderSonarNode {
   void Spin();
 
   bool SonarReconfiguration(
-      provider_sonar::sonar_reconfiguration::Request &req,
-      provider_sonar::sonar_reconfiguration::Response &resp);
+      provider_sonar::SonarReconfiguration::Request &req,
+      provider_sonar::SonarReconfiguration::Response &resp);
 
   bool SimulationReconfiguration(
-      provider_sonar::simulation_reconfiguration::Request &req,
-      provider_sonar::simulation_reconfiguration::Response &resp);
+      provider_sonar::SimulationReconfiguration::Request &req,
+      provider_sonar::SimulationReconfiguration::Response &resp);
 
   bool PointCloudReconfiguration(
-      provider_sonar::point_cloud_reconfiguration::Request &req,
-      provider_sonar::point_cloud_reconfiguration::Response &resp);
+      provider_sonar::PointCloudReconfiguration::Request &req,
+      provider_sonar::PointCloudReconfiguration::Response &resp);
 
   /**
    * This function is a callback associated with the reception of a scanline
