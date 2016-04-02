@@ -202,6 +202,7 @@ void ProviderSonarNode::PublishPointCloud2(
     // point_cloud_msg_.fields[3].offset] =
   }
   // ROS_INFO("Publishing PointCloud2");
+  point_cloud_msg_.header.frame_id = "SUB";
   point_cloud2_pub_.publish(point_cloud_msg_);
 }
 
