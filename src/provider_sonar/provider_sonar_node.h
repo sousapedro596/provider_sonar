@@ -35,6 +35,7 @@
 
 #include <ros/ros.h>
 #include "std_msgs/String.h"
+#include <provider_sonar/ProviderSonarConfiguration.h>
 #include <provider_sonar/ScanLine.h>
 #include <provider_sonar/SonarReconfiguration.h>
 #include <provider_sonar/SimulationReconfiguration.h>
@@ -89,6 +90,10 @@ class ProviderSonarNode {
       provider_sonar::PointCloudReconfiguration::Request &req,
       provider_sonar::PointCloudReconfiguration::Response &resp);
 
+  void PublishProviderSonarConfiguration(uint8_t n_bin, float range, float vos,
+      uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit,
+      uint8_t ad_span, uint8_t ad_low);
+
   /**
    * This function is a callback associated with the reception of a scanline
    * message from the sonar.
@@ -111,6 +116,7 @@ class ProviderSonarNode {
 
   ros::NodeHandlePtr nh_;
   ros::Publisher point_cloud2_pub_;
+  ros::Publisher sonar_configuration_pub_;
   ros::ServiceServer sonar_reconfig_server_;
   ros::ServiceServer simulation_reconfig_server_;
   ros::ServiceServer point_cloud_reconfig_server_;
