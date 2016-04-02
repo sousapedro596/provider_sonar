@@ -49,19 +49,21 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
         static_cast<uint8_t>(config_.angle_step_size),
         static_cast<uint16_t>(config_.left_limit),
-        static_cast<uint16_t>(config_.right_limit), config_.use_debug_mode);
+        static_cast<uint16_t>(config_.right_limit),
+        static_cast<uint8_t>(config_.ad_span),
+        static_cast<uint8_t>(config_.ad_low), config_.use_debug_mode);
 
     sonar_reconfig_server_ =
-        nh->advertiseService("Sonar_Reconfiguration",
+        nh->advertiseService("sonar_reconfiguration",
                              &ProviderSonarNode::SonarReconfiguration, this);
 
     simulation_reconfig_server_ = nh->advertiseService(
-        "Sonar_Reconfiguration", &ProviderSonarNode::SimulationReconfiguration,
-        this);
+        "simulation_reconfiguration",
+        &ProviderSonarNode::SimulationReconfiguration, this);
 
     point_cloud_reconfig_server_ = nh->advertiseService(
-        "Sonar_Reconfiguration", &ProviderSonarNode::PointCloudReconfiguration,
-        this);
+        "point_cloud_reconfiguration",
+        &ProviderSonarNode::PointCloudReconfiguration, this);
 
     driver_->ScanLineCallback(std::bind(
         &ProviderSonarNode::PublishPointCloud2, this, std::placeholders::_1,
@@ -87,7 +89,7 @@ ProviderSonarNode::~ProviderSonarNode() {
 //==============================================================================
 // M E T H O D   S E C T I O N
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 void ProviderSonarNode::Spin() {
   while (!ros::isShuttingDown()) {
@@ -100,51 +102,48 @@ void ProviderSonarNode::Spin() {
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::SonarReconfiguration(
-    provider_sonar::sonar_reconfiguration::Request &req,
-    provider_sonar::sonar_reconfiguration::Response &resp) {
+    provider_sonar::SonarReconfiguration::Request &req,
+    provider_sonar::SonarReconfiguration::Response &resp) {
   driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
                        static_cast<float>(req.vos), req.step_angle_size,
-                       req.left_limit, req.right_limit, req.debug_mode);
+                       req.left_limit, req.right_limit, req.ad_span, req.ad_low,
+                       req.debug_mode);
   return true;
 }
 
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::SimulationReconfiguration(
-    provider_sonar::simulation_reconfiguration::Request &req,
-    provider_sonar::simulation_reconfiguration::Response &resp) {}
+    provider_sonar::SimulationReconfiguration::Request &req,
+    provider_sonar::SimulationReconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::PointCloudReconfiguration(
-    provider_sonar::point_cloud_reconfiguration::Request &req,
-    provider_sonar::point_cloud_reconfiguration::Response &resp) {}
+    provider_sonar::PointCloudReconfiguration::Request &req,
+    provider_sonar::PointCloudReconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //
 void ProviderSonarNode::PublishPointCloud2(
     AngleType scan_angle, StepType bin_distance_step,
     IntensityBinsRawType intensity_bins) {
-  ScanLineMsgType::Ptr scan_line_msg(new ScanLineMsgType);
-  scan_line_msg->header.stamp = ros::Time::now();
-  scan_line_msg->header.frame_id = config_.frame_id;
-  scan_line_msg->angle = scan_angle;
-  scan_line_msg->bin_distance_step = bin_distance_step;
-
-  scan_line_msg->bins.reserve(intensity_bins.size());
+  std::vector<IntensityBinMsgType> bins;
+  bins.reserve(intensity_bins.size());
 
   for (int i = 0; i < intensity_bins.size(); ++i) {
     IntensityBinMsgType bin;
     bin.distance = bin_distance_step * (i + 1);
     bin.intensity = intensity_bins[i];
-    scan_line_msg->bins.push_back(bin);
+    bins.push_back(bin);
   }
 
   sensor_msgs::PointCloud2 point_cloud_msg_;
-  // - Copy ROS header
-  point_cloud_msg_.header = scan_line_msg->header;
-  // - TODO: Wtf is height and width
-  point_cloud_msg_.width = scan_line_msg->bins.size();
+  // Fill up point cloud header
+  point_cloud_msg_.header.stamp = ros::Time::now();
+  point_cloud_msg_.header.frame_id = config_.frame_id;
+  // Unorganized point cloud
+  point_cloud_msg_.width = static_cast<uint32_t>(bins.size());
   point_cloud_msg_.height = 1;
   // - Fields: x, y, z, intensity
   // - Fields describe the binary blob in data
@@ -154,7 +153,7 @@ void ProviderSonarNode::PublishPointCloud2(
   point_cloud_msg_.fields[2].name = "z";
   point_cloud_msg_.fields[3].name = "intensity";
   // - Offset from the beginning of the point struct in bytes
-  int offset = 0;
+  uint32_t offset = 0;
   for (size_t i = 0; i < point_cloud_msg_.fields.size(); ++i, offset += 4) {
     point_cloud_msg_.fields[i].offset = offset;
     point_cloud_msg_.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
@@ -162,26 +161,25 @@ void ProviderSonarNode::PublishPointCloud2(
   }
   // - Offset per point of data (x, y, z, intensity)
   point_cloud_msg_.point_step = offset;
-  // - length of the row TODO: is it ok?
   point_cloud_msg_.row_step = point_cloud_msg_.width;
   point_cloud_msg_.data.resize(point_cloud_msg_.point_step *
                                point_cloud_msg_.row_step);
-  point_cloud_msg_.is_bigendian = false;
-  point_cloud_msg_.is_dense = false;
+  point_cloud_msg_.is_bigendian = 0;
+  point_cloud_msg_.is_dense = 0;
 
   // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
-  float delta_x = scan_line_msg->bin_distance_step *
-                  cos(atlas::DegToRad(scan_line_msg->angle - 180.0));
-  float delta_y = scan_line_msg->bin_distance_step *
-                  sin(atlas::DegToRad(scan_line_msg->angle - 180.0));
+  float delta_x = static_cast<float>(bin_distance_step *
+                                     cos(atlas::DegToRad(scan_angle - 180.0)));
+  float delta_y = static_cast<float>(bin_distance_step *
+                                     sin(atlas::DegToRad(scan_angle - 180.0)));
 
-  // - try with distance * cos (theta)
+  // - try with distance * cos(theta)
   float coordinate_x = 0;
   float coordinate_y = 0;
   float coordinate_z = 0;
-  for (size_t i = 0; i < scan_line_msg->bins.size();
+  for (size_t i = 0; i < bins.size();
        ++i, coordinate_x += delta_x, coordinate_y += delta_y) {
-    float bin_intensity = (float)(scan_line_msg->bins[i].intensity) / 255.0;
+    float bin_intensity = static_cast<float>((bins[i].intensity) / 255.0);
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
                                   point_cloud_msg_.fields[0].offset],
            &coordinate_x, sizeof(float));

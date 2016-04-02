@@ -33,7 +33,8 @@ namespace provider_sonar {
 //
 SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
                          uint8_t angle_step_size, uint16_t left_limit,
-                         uint16_t right_limit, bool debug_mode)
+                         uint16_t right_limit, uint8_t ad_span, uint8_t ad_low,
+                         bool debug_mode)
     : its_serial_thread_(),
       its_processing_thread_(),
       its_state_(WaitingForAt),
@@ -51,7 +52,7 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_debug_mode_(debug_mode) {
   ResetMessage();
   SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit,
-                debug_mode);
+                ad_span, ad_low, debug_mode);
 }
 
 //------------------------------------------------------------------------------
@@ -64,48 +65,49 @@ SonarDriver::~SonarDriver() { Disconnect(); }
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Disconnect() {
-  std::cout << "Disconnecting" << std::endl;
+  ROS_INFO("Disconnecting");
   its_running_ = false;
   if (its_serial_thread_.joinable()) {
-    std::cout << "Joining..." << std::endl;
+    ROS_INFO("Joining...");
     try {
       its_serial_thread_.detach();
     } catch (...) {
-      std::cerr << "Caught Exception" << std::endl;
+      ROS_ERROR("Caught Exception");
     }
-    std::cout << "Joined" << std::endl;
+    ROS_INFO("Joined");
   }
-  std::cout << "Disconnected" << std::endl;
+  ROS_INFO("Disconnected");
 }
 
 //------------------------------------------------------------------------------
 //
 void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
                                 uint8_t angle_step_size, uint16_t left_limit,
-                                uint16_t right_limit, bool debug_mode) {
+                                uint16_t right_limit, uint8_t ad_span,
+                                uint8_t ad_low, bool debug_mode) {
   n_bins_ = n_bins;
   range_ = range;
   vos_ = vos;
   angle_step_size_ = angle_step_size;
   left_limit_ = left_limit;
   right_limit_ = right_limit;
+  ad_span_ = ad_span;
+  ad_low_ = ad_low;
   its_debug_mode_ = debug_mode;
 }
 
 //------------------------------------------------------------------------------
 //
 bool SonarDriver::Connect(std::string const &devName) {
-  if (its_debug_mode_) std::cout << "Connecting..." << std::endl;
-
+  ROS_INFO("Connecting...");
   serial_.flush();
 
   bool connection_success = serial_.connect(devName, 115200);
   if (!connection_success) {
-    std::cerr << "Could not connect to serial port!" << std::endl;
+    ROS_ERROR("Could not connect to serial port!");
     return false;
   }
-
-  if (its_debug_mode_) std::cout << "Connected" << std::endl;
+  ROS_INFO("Connected");
 
   sleep(1);
   serial_.writeVector(mtRebootMsg);
@@ -123,8 +125,9 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, angle_step_size_,
-                                  left_limit_, right_limit_);
+  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
+                                  right_limit_, angle_step_size_, ad_span_,
+                                  ad_low_);
   serial_.writeVector(headCommandMsg.Construct());
 }
 
@@ -132,10 +135,11 @@ void SonarDriver::Configure() {
 //
 void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
                               uint8_t step_angle_size, uint16_t left_limit,
-                              uint16_t right_limit, bool debug_mode) {
+                              uint16_t right_limit, uint8_t ad_span,
+                              uint8_t ad_low, bool debug_mode) {
   // Load the new values
   SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit,
-                debug_mode);
+                ad_span, ad_low, debug_mode);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   state_machine_semaphore_ = red;
@@ -166,7 +170,7 @@ void SonarDriver::SerialThreadMethod() {
       // std::cout << std::endl << "No Serial input" << std::endl;
     }
   }
-  std::cout << "serialThreadMethod Finished" << std::endl;
+  ROS_INFO("serialThreadMethod Finished");
 }
 
 //------------------------------------------------------------------------------
@@ -177,16 +181,14 @@ void SonarDriver::ProcessingThreadMethod() {
 
   while (its_running_) {
     if (state_machine_semaphore_ == green) {
-      // std::cout << "In loop: " <<std::endl;
       switch (state_) {
         case waitingforMtAlive_1:  // Waiting for MtAlive
           while (!has_heard_mtAlive_) {
             sleep(1);
-            std::cout << "Waiting: " << std::endl;
+            ROS_INFO("Waiting");
           }
           if (its_debug_mode_)
-            std::cout << "----------Received mtAlive----Case 1------"
-                      << std::endl;
+            ROS_INFO("----------Received mtAlive----------Case 1------");
           state_ = versionData;
           break;
         case versionData:  // Waiting for MtVersion Data
@@ -195,16 +197,14 @@ void SonarDriver::ProcessingThreadMethod() {
             sleep(1);
           }
           if (its_debug_mode_)
-            std::cout << "----------Received mtVersionData----Case 2------"
-                      << std::endl;
+            ROS_INFO("----------Received mtVersionData----Case 2------");
           state_ = waitingforMtAlive_2;
           break;
         case waitingforMtAlive_2:  // Waiting for MtAlive
           has_heard_mtAlive_ = false;
           while (!has_heard_mtAlive_) sleep(1);
           if (its_debug_mode_)
-            std::cout << "----------Received mtAlive----Case 3------"
-                      << std::endl;
+            ROS_INFO("----------Received mtAlive----------Case 3------");
           if (has_params_) {
             state_ = scanning;
           } else {
@@ -212,11 +212,13 @@ void SonarDriver::ProcessingThreadMethod() {
           }
           break;
         case configuring:  // Configure the Sonar
-          if (its_debug_mode_)
-            std::cout << "----------Configuring Sonar----Case 4------"
-                      << std::endl;
+          if (its_debug_mode_) {
+            ROS_INFO("----------Configuring Sonar---------Case 4------");
+          }
           Configure();
-          if (its_debug_mode_) std::cout << "Changing to State 3" << std::endl;
+          if (its_debug_mode_) {
+            ROS_INFO("Changing to State 3");
+          }
           sleep(5);
           state_ = waitingforMtAlive_2;
           break;
@@ -224,16 +226,15 @@ void SonarDriver::ProcessingThreadMethod() {
 
           if (firstSemaphore == green) {
             firstSemaphore = red;
-            if (its_debug_mode_)
-              std::cout << "----------Scanning: ...   ----Case 5------"
-                        << std::endl;
+            if (its_debug_mode_) {
+              ROS_INFO("----------Scanning----------------Case 5------");
+            }
             sleep(1);
             serial_.writeVector(mtSendDataMsg);
           }
 
           if (waitedPeriods > 15) {
-            if (its_debug_mode_)
-              std::cout << "----------Scanning: Resending request" << std::endl;
+            if (its_debug_mode_) ROS_INFO("Scanning Resending request");
             serial_.writeVector(mtSendDataMsg);
             // usleep(100000);
             sleep(1);
@@ -247,19 +248,13 @@ void SonarDriver::ProcessingThreadMethod() {
             has_heard_mtHeadData_ = false;
           }
           break;
-
-          // Transition to configuring in case the sonar reports lacking
-          // parameters
-          if (!has_params_) {
-            state_ = configuring;
-          }
       }
     } else {
       usleep(10);
     }
   }
 
-  std::cout << "processingThreadMethod Finished" << std::endl;
+  ROS_INFO("processingThreadMethod Finished");
 }
 
 //------------------------------------------------------------------------------
@@ -289,10 +284,8 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       its_msg_ = SonarMessage();
       return;
     } else if (its_debug_mode_)
-      std::cout << " bogus byte: " << std::hex << int(byte)
-                << std::dec;  //<< std::endl;
+      ROS_INFO_STREAM(" bogus byte: " << std::hex << int(byte) << std::dec);
   }
-  // std::cout << std::endl;
 
   if (its_state_ == ReadingHeader) {
     // Ignore the 'Hex Length' section
@@ -305,8 +298,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
     if (its_raw_msg_.size() == 8) {
       its_msg_.binary_length |= uint16_t(byte) << 8;
       if (its_msg_.binary_length > 1000) {
-        if (its_debug_mode_)
-          std::cout << " Message length too big!" << std::endl;
+        if (its_debug_mode_) ROS_ERROR(" Message length too big!");
         ResetMessage();
       }
       return;
@@ -329,7 +321,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       return;
     }
 
-    std::cerr << "Parsing error!" << std::endl;
+    ROS_ERROR("Parsing error!");
     ResetMessage();
     return;
   }
@@ -343,8 +335,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
         ProcessMessage(its_msg_);
         ResetMessage();
       } else {
-        if (its_debug_mode_)
-          std::cout << " Message finished, but no LF detected!";
+        if (its_debug_mode_) ROS_ERROR("Message finished, but no LF detected!");
         ResetMessage();
         return;
       }
@@ -359,18 +350,14 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     mtVersionDataMsg parsedMsg(msg);
     has_heard_mtVersionData_ = true;
 
-    if (its_debug_mode_)
-      std::cout << std::endl
-                << "Received mtVersionData Message" << std::endl;
+    if (its_debug_mode_) ROS_INFO("Received mtVersionData Message");
     if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     has_heard_mtAlive_ = true;
     has_params_ = !parsedMsg.no_params;
 
-    if (its_debug_mode_)
-      std::cout << std::endl
-                << "Received mtAlive Message" << std::endl;
+    if (its_debug_mode_) ROS_INFO("Received mtAlive Message");
     if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
@@ -383,16 +370,16 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     float range_meters;
     switch (parsedMsg.range_units) {
       case mtHeadDataMsg::meters:
-        range_meters = parsedMsg.ranges_scale;
+        range_meters = parsedMsg.range_scale;
         break;
       case mtHeadDataMsg::feet:
-        range_meters = parsedMsg.ranges_scale * 0.3048;
+        range_meters = parsedMsg.range_scale * 0.3048;
         break;
       case mtHeadDataMsg::fathoms:
-        range_meters = parsedMsg.ranges_scale * 1.8288;
+        range_meters = parsedMsg.range_scale * 1.8288;
         break;
       case mtHeadDataMsg::yards:
-        range_meters = parsedMsg.ranges_scale * 0.9144;
+        range_meters = parsedMsg.range_scale * 0.9144;
         break;
     }
 
@@ -402,16 +389,12 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
                             parsedMsg.scanline);
     }
 
-    if (its_debug_mode_)
-      std::cout << std::endl
-                << "Received mtHeadData Message" << std::endl;
+    if (its_debug_mode_) ROS_INFO("Received mtHeadData Message");
     if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtBBUserData) {
-    if (its_debug_mode_)
-      std::cout << std::endl
-                << "Received mtBBUserData Message" << std::endl;
+    if (its_debug_mode_) ROS_INFO("Received mtBBUserData Message");
   } else {
-    std::cerr << "Unhandled Message Type: " << msg.id << std::endl;
+    ROS_ERROR_STREAM("Unhandled Message Type: " << msg.id);
   }
 }
 }

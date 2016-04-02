@@ -1,9 +1,0 @@
-<launch>
-
-<!--Load parameters for the Sonar driver -->
-<rosparam command="load" file="$(find provider_sonar)/config/sonar_configuration.yaml"/>
-
-<!--Create a sonar driver node-->
-<node pkg="provider_sonar" type="provider_sonar_node" name="sonar_node" output="screen" />
-
-</launch>
