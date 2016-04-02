@@ -41,6 +41,7 @@ add_message_files(
         FILES
         IntensityBin.msg
         ScanLine.msg
+        ProviderSonarConfiguration.msg
 )
 
 add_service_files(

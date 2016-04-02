@@ -45,6 +45,10 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
     point_cloud2_pub_ =
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
+    sonar_configuration_pub_ =
+        nh_->advertise<provider_sonar::ProviderSonarConfiguration>
+            ("provider_sonar_configuration", 100);
+
     driver_ = new SonarDriver(
         static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
         static_cast<uint8_t>(config_.angle_step_size),
@@ -122,6 +126,12 @@ bool ProviderSonarNode::SimulationReconfiguration(
 bool ProviderSonarNode::PointCloudReconfiguration(
     provider_sonar::PointCloudReconfiguration::Request &req,
     provider_sonar::PointCloudReconfiguration::Response &resp) {}
+
+//------------------------------------------------------------------------------
+//
+void ProviderSonarNode::PublishProviderSonarConfiguration(uint8_t n_bin, float range, float vos, uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit, uint8_t ad_span, uint8_t ad_low) {
+
+}
 
 //------------------------------------------------------------------------------
 //
