@@ -6,7 +6,4 @@
 <!--Create a sonar driver node-->
 <node pkg="provider_sonar" type="provider_sonar_node" name="sonar_node" output="screen" />
 
-<!--Set the frame for the Sonar -->
- <node pkg="tf" type="static_transform_publisher" name="Sonar_to_world" args="0.5 0.0 0.0 1.57 1.57 1.57 /sparus2 /Micron  100" />
-  
 </launch>

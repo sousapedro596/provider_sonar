@@ -13,9 +13,6 @@
 <!--Create a node parser -->
 <node pkg="provider_sonar" type="micron_driver_scanline_parser" name="scanline_parser" output="screen" />
 
-<!--Set the frame for the Sonar -->
- <node pkg="tf" type="static_transform_publisher" name="Sonar_to_Sparus" args="1.0 0.0 0.0 0.0 0.0 1.57 /sparus2 /Micron 100" />
-
 <!--Launch RViz -->
 <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find provider_sonar)/config/Rviz_config.rviz" /> -->
   

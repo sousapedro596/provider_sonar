@@ -36,7 +36,7 @@ namespace provider_sonar {
 //------------------------------------------------------------------------------
 //
 SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
-    : frame_id("Micron"),
+    : frame_id("SUB"),
       port("/dev/ttyS3"),
       n_bins(400),
       range(8.0),

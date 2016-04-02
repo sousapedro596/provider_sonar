@@ -2,7 +2,7 @@
 #**********Sonar parameters************
 #**************************************
 #Frame id of the sonar
-/provider_sonar/sonar/frame_id_ : "Micron"
+/provider_sonar/sonar/frame_id_ : "SUB"
 #Serial port the sonar is connected to 
 /provider_sonar/sonar/port_ : "/dev/ttyS3"
 #Number of measurements to be taken 
