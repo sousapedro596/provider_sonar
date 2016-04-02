@@ -99,6 +99,14 @@ void ProviderSonarNode::Spin() {
   while (!ros::isShuttingDown()) {
     while (nh_->ok()) {
       ros::spinOnce();
+      
+      PublishProviderSonarConfiguration(static_cast<uint16_t>(config_.n_bins),
+                                        config_.range, config_.vos,
+                                        static_cast<uint8_t>(config_.angle_step_size),
+                                        static_cast<uint16_t>(config_.left_limit),
+                                        static_cast<uint16_t>(config_.right_limit),
+                                        static_cast<uint8_t>(config_.ad_span),
+                                        static_cast<uint8_t>(config_.ad_low));
     }
   }
 }
@@ -129,8 +137,19 @@ bool ProviderSonarNode::PointCloudReconfiguration(
 
 //------------------------------------------------------------------------------
 //
-void ProviderSonarNode::PublishProviderSonarConfiguration(uint8_t n_bin, float range, float vos, uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit, uint8_t ad_span, uint8_t ad_low) {
+void ProviderSonarNode::PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos, uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit, uint8_t ad_span, uint8_t ad_low) {
+  provider_sonar::ProviderSonarConfiguration provider_sonar_config_msg;
 
+  provider_sonar_config_msg.n_bin = n_bin;
+  provider_sonar_config_msg.range = range;
+  provider_sonar_config_msg.vos = vos;
+  provider_sonar_config_msg.angle_step_size = angle_step_size;
+  provider_sonar_config_msg.left_limit = left_limit;
+  provider_sonar_config_msg.right_limit = right_limit;
+  provider_sonar_config_msg.ad_span = ad_span;
+  provider_sonar_config_msg.ad_low = ad_low;
+
+  sonar_configuration_pub_.publish(provider_sonar_config_msg);
 }
 
 //------------------------------------------------------------------------------

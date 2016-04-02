@@ -1,4 +1,4 @@
-uint8 n_bin
+uint16 n_bin
 float32 range
 float32 vos
 uint8 angle_step_size

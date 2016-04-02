@@ -90,7 +90,7 @@ class ProviderSonarNode {
       provider_sonar::PointCloudReconfiguration::Request &req,
       provider_sonar::PointCloudReconfiguration::Response &resp);
 
-  void PublishProviderSonarConfiguration(uint8_t n_bin, float range, float vos,
+  void PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos,
       uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit,
       uint8_t ad_span, uint8_t ad_low);
 
