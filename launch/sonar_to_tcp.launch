@@ -1,0 +1,7 @@
+<launch>
+    <node name="redirect_sonar_to_tcp"
+        pkg="tcp_serial_redirect"
+        type="tcp_serial_redirect.py"
+        args="-b 115200 --localport=7333 --port=/dev/ttyS3"
+        output="log" />
+</launch>
