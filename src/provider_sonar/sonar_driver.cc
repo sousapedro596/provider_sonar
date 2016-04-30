@@ -110,7 +110,7 @@ bool SonarDriver::Connect(std::string const &devName) {
   ROS_INFO("Connected");
 
   sleep(1);
-  serial_.writeVector(mtRebootMsg);
+  //serial_.writeVector(mtRebootMsg);
 
   its_running_ = true;
   its_serial_thread_ =
@@ -215,7 +215,7 @@ void SonarDriver::ProcessingThreadMethod() {
           if (its_debug_mode_) {
             ROS_INFO("----------Configuring Sonar---------Case 4------");
           }
-          Configure();
+          //Configure();
           if (its_debug_mode_) {
             ROS_INFO("Changing to State 3");
           }

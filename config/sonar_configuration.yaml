@@ -8,7 +8,7 @@
 #Number of measurements to be taken 
 /provider_sonar/sonar/n_bins_ : 400
 #Sonar range (m)
-/provider_sonar/sonar/range_ : 8.0
+/provider_sonar/sonar/range_ : 10.0
 #Velocity of sound in water 
 /provider_sonar/sonar/vos_ : 1500.0
 #Angle between two consecutive steps, in 1/16 gradians:
@@ -19,9 +19,9 @@
 #Right limit of scanning sector
 /provider_sonar/sonar/right_limit_ : 4000
 #Set the width of the sampling window in dB
-/provider_sonar/sonar/ad_span_ : 15
+/provider_sonar/sonar/ad_span_ : 9
 #Set the low bound of the sampling window in dB
-/provider_sonar/sonar/ad_low_ : 26
+/provider_sonar/sonar/ad_low_ : 0
 #Debug mode for the driver 
 /provider_sonar/sonar/use_debug_mode_ : true
 
