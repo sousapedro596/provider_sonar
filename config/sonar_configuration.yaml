@@ -19,9 +19,9 @@
 #Right limit of scanning sector
 /provider_sonar/sonar/right_limit_ : 4000
 #Set the width of the sampling window in dB
-/provider_sonar/sonar/ad_span_ : 9
+/provider_sonar/sonar/ad_span_ : 28
 #Set the low bound of the sampling window in dB
-/provider_sonar/sonar/ad_low_ : 0
+/provider_sonar/sonar/ad_low_ : 20
 #Debug mode for the driver 
 /provider_sonar/sonar/use_debug_mode_ : true
 

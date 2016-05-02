@@ -320,7 +320,7 @@ struct mtHeadCommandMsg {
   mtHeadCommandMsg(uint16_t n_bins = 400, float range = 8.0f,
                    float vos = 1500.0f, uint16_t left_limit = 2400,
                    uint16_t right_limit = 4000, uint8_t step_angle_size = 16,
-                   uint8_t ad_span = 15, uint8_t ad_low = 26)
+                   uint8_t ad_span = 28, uint8_t ad_low = 20)
       : n_bins(n_bins),
         range(range),
         vos(vos),
@@ -362,7 +362,7 @@ struct mtHeadCommandMsg {
         0x00, 0x40, 0x30, 0x30, 0x34, 0x43, 0x4C, 0x00, 0xFF, 0x02, 0x47, 0x13,
         0x80, 0x02, 0x1D, 0x05, 0x23, 0x11, 0x99, 0x99, 0x99, 0x05, 0xE1, 0x7A,
         0x14, 0x00, 0x99, 0x99, 0x99, 0x05, 0xEB, 0x51, 0xB8, 0x03, 0x32, 0x00,
-        0x64, 0x00, 0x60, 0x09, 0xA0, 0x0F, 0x1F, 0x5C, 0x69, 0x64, 0x64, 0x00,
+        0x64, 0x00, 0x60, 0x09, 0xA0, 0x0F, 0x5C, 0x40, 0x69, 0x64, 0x64, 0x00,
         0x00, 0x00, 0x19, 0x10, 0x1B, 0x00, 0x11, 0x03, 0xE8, 0x03, 0xF4, 0x01,
         0x40, 0x06, 0x01, 0x00, 0x00, 0x00, 0x1F, 0x32, 0x5C, 0x00, 0x69, 0x64,
         0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
@@ -374,12 +374,8 @@ struct mtHeadCommandMsg {
 
     msg[51] = step_angle_size;
 
-    uint16_t left_limit_grads = left_limit;
-
     msg[38] = static_cast<uint8_t>(left_limit & 0x00FF);
     msg[39] = static_cast<uint8_t>(left_limit >> 8);
-
-    uint16_t rightLimGrads = right_limit;
 
     msg[40] = static_cast<uint8_t>(right_limit & 0x00FF);
     msg[41] = static_cast<uint8_t>(right_limit >> 8);
@@ -641,6 +637,48 @@ struct mtHeadDataMsg {
           "is not yet supported.");
       return;
     }
+  }
+};
+
+//------------------------------------------------------------------------------
+//
+struct mtHeadCommandShortMsg {
+  //============================================================================
+  // C / D T O R S   S E C T I O N
+
+  //----------------------------------------------------------------------------
+  //
+  mtHeadCommandShortMsg(uint8_t ad_span = 28, uint8_t ad_low = 20)
+      : ad_span(ad_span),
+        ad_low(ad_low) {}
+
+  //============================================================================
+  // P U B L I C   M E M B E R S
+
+  uint8_t ad_span;  // Set the width of the sampling window in dB
+  uint8_t ad_low;   // Set the low bound of the sampling window in dB
+
+  //============================================================================
+  // P U B L I C   M E T H O D S
+
+  // Construct the message vector from the given parameters
+  std::vector<uint8_t> Construct() {
+    // This is the skeleton message, we overwrite some of those bytes
+    // with our parameters. We start this vector with 0x00 to match the
+    // datasheet bytes numerotation.
+    std::vector<uint8_t> msg = {
+        0x00, 0x40, 0x30, 0x30, 0x31, 0x39, 0x19, 0x00, 0xFF, 0x02, 0x14, 0x13,
+        0x80, 0x02, 0x1E, 0x5C, 0x32, 0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
+
+    // AD Span is sent back to user in dB
+    msg[16] = static_cast<uint8_t>(255 * (ad_span / 80));
+
+    // AD Low is sent back to user in dB
+    msg[18] = static_cast<uint8_t>(255 * (ad_low / 80));
+
+    msg.erase(msg.begin());
+    return msg;
   }
 };
 
