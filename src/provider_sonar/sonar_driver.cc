@@ -215,7 +215,7 @@ void SonarDriver::ProcessingThreadMethod() {
           if (its_debug_mode_) {
             ROS_INFO("----------Configuring Sonar---------Case 4------");
           }
-          //Configure();
+          Configure();
           if (its_debug_mode_) {
             ROS_INFO("Changing to State 3");
           }
