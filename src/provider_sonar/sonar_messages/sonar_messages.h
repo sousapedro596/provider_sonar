@@ -367,6 +367,7 @@ struct mtHeadCommandMsg {
         0x40, 0x06, 0x01, 0x00, 0x00, 0x00, 0x1F, 0x32, 0x5C, 0x00, 0x69, 0x64,
         0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
+
     uint16_t range_scale = uint16_t(floor(range * 10 + 0.5));
     msg[36] = static_cast<uint8_t>(range_scale & 0x00FF);
     msg[37] = static_cast<uint8_t>(range_scale >> 8);
@@ -396,10 +397,10 @@ struct mtHeadCommandMsg {
         static_cast<uint16_t>(std::ceil(sample_time / 640.0 * 1000.0));
 
     // AD Span is sent back to user in dB
-    msg[42] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[42] = static_cast<uint8_t>(255 * (ad_span / 80));
 
     // AD Low is sent back to user in dB
-    msg[43] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[43] = static_cast<uint8_t>(255 * (ad_low / 80));
 
     msg[52] = static_cast<uint8_t>(ad_interval & 0x00FF);
     msg[53] = static_cast<uint8_t>(ad_interval >> 8);

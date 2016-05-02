@@ -37,16 +37,16 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
                          bool debug_mode)
     : its_serial_thread_(),
       its_processing_thread_(),
-      its_state_(WaitingForAt),
+      its_state_(ReadingData),
       state_machine_semaphore_(green),
       scanning_callback_semaphore_(green),
-      state_(waitingforMtAlive_1),
+      state_(scanning),
       its_raw_msg_(),
       its_msg_(),
-      has_heard_mtAlive_(false),
-      has_heard_mtVersionData_(false),
-      has_heard_mtHeadData_(false),
-      has_params_(false),
+      has_heard_mtAlive_(true),
+      has_heard_mtVersionData_(true),
+      has_heard_mtHeadData_(true),
+      has_params_(true),
       serial_(),
       its_running_(false),
       its_debug_mode_(debug_mode) {
@@ -110,7 +110,7 @@ bool SonarDriver::Connect(std::string const &devName) {
   ROS_INFO("Connected");
 
   sleep(1);
-  serial_.writeVector(mtRebootMsg);
+  //serial_.writeVector(mtRebootMsg);
 
   its_running_ = true;
   its_serial_thread_ =
