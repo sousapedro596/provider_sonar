@@ -97,16 +97,22 @@ ProviderSonarNode::~ProviderSonarNode() {
 //
 void ProviderSonarNode::Spin() {
   while (!ros::isShuttingDown()) {
+    ros::Time previous = ros::Time::now();
     while (nh_->ok()) {
       ros::spinOnce();
-      
-      PublishProviderSonarConfiguration(static_cast<uint16_t>(config_.n_bins),
-                                        config_.range, config_.vos,
-                                        static_cast<uint8_t>(config_.angle_step_size),
-                                        static_cast<uint16_t>(config_.left_limit),
-                                        static_cast<uint16_t>(config_.right_limit),
-                                        static_cast<uint8_t>(config_.ad_span),
-                                        static_cast<uint8_t>(config_.ad_low));
+      ros::Time now = ros::Time::now();
+      ros::Duration desired(1, 0);
+
+      if ((now - previous) > desired) {
+        PublishProviderSonarConfiguration(static_cast<uint16_t>(config_.n_bins),
+                                          config_.range, config_.vos,
+                                          static_cast<uint8_t>(config_.angle_step_size),
+                                          static_cast<uint16_t>(config_.left_limit),
+                                          static_cast<uint16_t>(config_.right_limit),
+                                          static_cast<uint8_t>(config_.ad_span),
+                                          static_cast<uint8_t>(config_.ad_low));
+        previous = ros::Time::now();
+      }
     }
   }
 }
@@ -116,9 +122,18 @@ void ProviderSonarNode::Spin() {
 bool ProviderSonarNode::SonarReconfiguration(
     provider_sonar::SonarReconfiguration::Request &req,
     provider_sonar::SonarReconfiguration::Response &resp) {
-  driver_->Reconfigure(req.n_bins, static_cast<float>(req.range),
-                       static_cast<float>(req.vos), req.step_angle_size,
-                       req.left_limit, req.right_limit, req.ad_span, req.ad_low,
+
+  config_.n_bins = req.n_bins;
+  config_.range = static_cast<float>(req.range);
+  config_.vos = static_cast<float>(req.vos);
+  config_.angle_step_size = req.step_angle_size;
+  config_.left_limit = req.left_limit;
+  config_.right_limit = req.right_limit;
+  config_.ad_span = req.ad_span;
+  config_.ad_low = req.ad_low;
+
+  driver_->Reconfigure(config_.n_bins, config_.range,config_.vos, config_.angle_step_size,
+                       config_.left_limit, config_.right_limit, config_.ad_span, config_.ad_low,
                        req.debug_mode);
   return true;
 }
