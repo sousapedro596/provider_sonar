@@ -367,7 +367,6 @@ struct mtHeadCommandMsg {
         0x06, 0x01, 0x00, 0x00, 0x00, 0x59, 0x32, 0x3F, 0x00, 0x69, 0x64, 0x00,
         0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
-
     uint16_t range_scale = uint16_t(floor(range * 10 + 0.5));
     msg[35] = static_cast<uint8_t>(range_scale & 0x00FF);
     msg[36] = static_cast<uint8_t>(range_scale >> 8);
@@ -596,7 +595,7 @@ struct mtHeadDataMsg {
     step_angle_size = msg.data[39] / 16.0f * 180.0f / 200.0f;
     // Transducer bearing is giving in degree
     transducer_bearing =
-        (msg.data[41] | (msg.data[41]) << 8) / 16.0f * 180.0f / 200.0f;
+        (msg.data[40] | (msg.data[41]) << 8) / 16.0f * 180.0f / 200.0f;
 
     // AD Span is sent back to user in dB
     ad_span = static_cast<uint8_t>(msg.data[29] / 255.0f * 80.0f);
@@ -612,23 +611,23 @@ struct mtHeadDataMsg {
     if (head_control.adc8on) {
       scanline.resize(static_cast<size_t>(data_bytes));
       // Check if the scanline take the right size of msg.data
-      if (scanline.size() != msg.data.size() - 46) {
+      if (scanline.size() != msg.data.size() - 45) {
         ROS_ERROR_STREAM("Scanline appears to be mis-sized.  Size is "
                          << scanline.size() << ", but should be "
-                         << msg.data.size() - 46);
+                         << msg.data.size() - 45);
         return;
       }
 
       // Copy msg.data to scanline vector
       for (size_t i = 0; i < scanline.size(); ++i)
-        scanline[i] = msg.data.at(i + 45);
+        scanline[i] = msg.data.at(i + 44);
 
     } else {
       scanline.resize(static_cast<size_t>(data_bytes * 2));
-      if (scanline.size() != msg.data.size() / 2 - 46) {
+      if (scanline.size() != msg.data.size() / 2 - 45) {
         ROS_ERROR_STREAM("ScanLine appears to be mis-sized.  Size is "
                          << scanline.size() << ", but should be "
-                         << msg.data.size() - 46);
+                         << msg.data.size() - 45);
         return;
       }
       ROS_ERROR_STREAM(
@@ -648,8 +647,7 @@ struct mtHeadCommandShortMsg {
   //----------------------------------------------------------------------------
   //
   mtHeadCommandShortMsg(uint8_t ad_span = 28, uint8_t ad_low = 20)
-      : ad_span(ad_span),
-        ad_low(ad_low) {}
+      : ad_span(ad_span), ad_low(ad_low) {}
 
   //============================================================================
   // P U B L I C   M E M B E R S
@@ -665,10 +663,10 @@ struct mtHeadCommandShortMsg {
     // This is the skeleton message, we overwrite some of those bytes
     // with our parameters. We start this vector with 0x00 to match the
     // datasheet bytes numerotation.
-    std::vector<uint8_t> msg = {
-        0x40, 0x30, 0x30, 0x31, 0x39, 0x19, 0x00, 0xFF, 0x02, 0x14, 0x13, 0x80,
-        0x02, 0x1E, 0x5C, 0x32, 0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
+    std::vector<uint8_t> msg = {0x40, 0x30, 0x30, 0x31, 0x39, 0x19, 0x00, 0xFF,
+                                0x02, 0x14, 0x13, 0x80, 0x02, 0x1E, 0x5C, 0x32,
+                                0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64, 0x00,
+                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
     // AD Span is sent back to user in dB
     msg[14] = static_cast<uint8_t>(255 * ad_span / 80);

@@ -125,7 +125,7 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  if(has_params_) {
+  if (has_params_) {
     mtHeadCommandShortMsg headCommandShortMsg(ad_span_, ad_low_);
     serial_.writeVector(headCommandShortMsg.Construct());
   } else {
@@ -283,18 +283,19 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       its_msg_ = SonarMessage();
       return;
     } else if (its_debug_mode_)
-      ROS_INFO_STREAM(" bogus byte: " << std::hex << static_cast<int>(byte) << std::dec);
+      ROS_INFO_STREAM(" bogus byte: " << std::hex << static_cast<int>(byte)
+                                      << std::dec);
   }
 
   if (its_state_ == ReadingHeader) {
     // Ignore the 'Hex Length' section
-    if (its_raw_msg_.size() < 7) return;
+    if (its_raw_msg_.size() < 6) return;
 
-    if (its_raw_msg_.size() == 7) {
+    if (its_raw_msg_.size() == 6) {
       its_msg_.binary_length = static_cast<uint16_t>(byte);
       return;
     }
-    if (its_raw_msg_.size() == 8) {
+    if (its_raw_msg_.size() == 7) {
       its_msg_.binary_length |= static_cast<uint16_t>(byte) << 8;
       if (its_msg_.binary_length > 1000) {
         if (its_debug_mode_) ROS_ERROR(" Message length too big!");
@@ -302,19 +303,19 @@ void SonarDriver::ProcessByte(uint8_t byte) {
       }
       return;
     }
-    if (its_raw_msg_.size() == 9) {
+    if (its_raw_msg_.size() == 8) {
       its_msg_.tx_node = byte;
       return;
     }
-    if (its_raw_msg_.size() == 10) {
+    if (its_raw_msg_.size() == 9) {
       its_msg_.rx_node = byte;
       return;
     }
-    if (its_raw_msg_.size() == 11) {
+    if (its_raw_msg_.size() == 10) {
       its_msg_.n_byte = byte;
       return;
     }
-    if (its_raw_msg_.size() == 12) {
+    if (its_raw_msg_.size() == 11) {
       its_msg_.id = MessageID(byte);
       its_state_ = ReadingData;
       return;
@@ -328,7 +329,7 @@ void SonarDriver::ProcessByte(uint8_t byte) {
   if (its_state_ == ReadingData) {
     // if(itsDebugMode) std::cout <<"  Remaining bytes: "<< std::dec  <<
     // uint16_t(itsMsg.binLength - (itsRawMsg.size() - 7)) << std::dec;
-    if (uint16_t(its_msg_.binary_length - (its_raw_msg_.size() - 7)) == 0) {
+    if (uint16_t(its_msg_.binary_length - (its_raw_msg_.size() - 6)) == 0) {
       if (byte == 0x0A) {
         its_msg_.data = its_raw_msg_;
         ProcessMessage(its_msg_);
