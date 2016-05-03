@@ -273,23 +273,17 @@ void SonarDriver::ResetMessage() {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::ProcessByte(uint8_t byte) {
-  // if(itsDebugMode) std::cout << std::endl << "Received Byte: " << std::hex <<
-  // int(byte) << std::dec ;
   its_raw_msg_.push_back(byte);
 
   if (its_state_ == WaitingForAt) {
     if (byte == '@') {
       its_raw_msg_.clear();
-      // Tritech's datasheet refers to the first byte as '1' rather than '0', so
-      // let's push back a bogus byte here just
-      // to make reading the datasheet easier.
-      its_raw_msg_.push_back(0);
       its_raw_msg_.push_back(byte);
       its_state_ = ReadingHeader;
       its_msg_ = SonarMessage();
       return;
     } else if (its_debug_mode_)
-      ROS_INFO_STREAM(" bogus byte: " << std::hex << int(byte) << std::dec);
+      ROS_INFO_STREAM(" bogus byte: " << std::hex << static_cast<int>(byte) << std::dec);
   }
 
   if (its_state_ == ReadingHeader) {
@@ -297,11 +291,11 @@ void SonarDriver::ProcessByte(uint8_t byte) {
     if (its_raw_msg_.size() < 7) return;
 
     if (its_raw_msg_.size() == 7) {
-      its_msg_.binary_length = uint16_t(byte);
+      its_msg_.binary_length = static_cast<uint16_t>(byte);
       return;
     }
     if (its_raw_msg_.size() == 8) {
-      its_msg_.binary_length |= uint16_t(byte) << 8;
+      its_msg_.binary_length |= static_cast<uint16_t>(byte) << 8;
       if (its_msg_.binary_length > 1000) {
         if (its_debug_mode_) ROS_ERROR(" Message length too big!");
         ResetMessage();

@@ -180,29 +180,29 @@ struct mtVersionDataMsg {
   //----------------------------------------------------------------------------
   //
   mtVersionDataMsg(SonarMessage const &msg) {
-    msg.LenghtCheck(26);
+    msg.LenghtCheck(25);
     msg.IdCheck(mtVersionData);
-    msg.IsByteEqual('@', 1);
-    msg.IsByteEqual(mtVersionData, 11);
+    msg.IsByteEqual('@', 0);
+    msg.IsByteEqual(mtVersionData, 10);
 
-    tx_node = msg.data[13];
+    tx_node = msg.data[12];
 
-    software_version = msg.data[14];
+    software_version = msg.data[13];
 
-    info_bits = msg.data[15];
+    info_bits = msg.data[14];
 
-    uid = uint16_t(msg.data[16] << 0);
-    uid |= uint16_t(msg.data[17] << 8);
+    uid = uint16_t(msg.data[15] << 0);
+    uid |= uint16_t(msg.data[16] << 8);
 
-    program_length = msg.data[18] << 0;
-    program_length |= msg.data[19] << 8;
-    program_length |= msg.data[20] << 16;
-    program_length |= msg.data[21] << 24;
+    program_length = msg.data[17] << 0;
+    program_length |= msg.data[18] << 8;
+    program_length |= msg.data[19] << 16;
+    program_length |= msg.data[20] << 24;
 
-    checksum = msg.data[22] << 0;
-    checksum += msg.data[23] << 8;
+    checksum = msg.data[21] << 0;
+    checksum += msg.data[22] << 8;
 
-    msg.IsByteEqual(0x0A, 25);
+    msg.IsByteEqual(0x0A, 24);
   }
 
   //----------------------------------------------------------------------------
@@ -245,21 +245,21 @@ struct mtAliveMsg {
   //----------------------------------------------------------------------------
   //
   mtAliveMsg(SonarMessage const &msg) {
-    msg.IsByteEqual('@', 1);
-    msg.IsByteEqual(mtAlive, 11);
-    msg.IsByteEqual(0x80, 12);
+    msg.IsByteEqual('@', 0);
+    msg.IsByteEqual(mtAlive, 10);
+    msg.IsByteEqual(0x80, 11);
 
-    tx_node = msg.data[13];
+    tx_node = msg.data[12];
 
-    head_time_msec = msg.data[15] << 0;
-    head_time_msec |= msg.data[16] << 8;
-    head_time_msec |= msg.data[17] << 16;
-    head_time_msec |= msg.data[18] << 24;
+    head_time_msec = msg.data[14] << 0;
+    head_time_msec |= msg.data[15] << 8;
+    head_time_msec |= msg.data[16] << 16;
+    head_time_msec |= msg.data[17] << 24;
 
-    motor_pos = msg.data[19] << 0;
-    motor_pos |= msg.data[20] << 8;
+    motor_pos = msg.data[18] << 0;
+    motor_pos |= msg.data[19] << 8;
 
-    std::bitset<8> head_info_ = msg.data[21];
+    std::bitset<8> head_info_ = msg.data[20];
     in_centre = head_info_[0];
     centered = head_info_[1];
     motoring = head_info_[2];
@@ -269,7 +269,7 @@ struct mtAliveMsg {
     no_params = head_info_[6];
     sent_cfg = head_info_[7];
 
-    msg.IsByteEqual(0x0A, 22);
+    msg.IsByteEqual(0x0A, 21);
   };
 
   //----------------------------------------------------------------------------
@@ -359,29 +359,29 @@ struct mtHeadCommandMsg {
     // with our parameters. We start this vector with 0x00 to match the
     // datasheet bytes numerotation.
     std::vector<uint8_t> msg = {
-        0x00, 0x40, 0x30, 0x30, 0x34, 0x43, 0x4C, 0x00, 0xFF, 0x02, 0x47, 0x13,
-        0x80, 0x02, 0x1D, 0x05, 0x23, 0x11, 0x99, 0x99, 0x99, 0x05, 0xE1, 0x7A,
-        0x14, 0x00, 0x99, 0x99, 0x99, 0x05, 0xEB, 0x51, 0xB8, 0x03, 0x32, 0x00,
-        0x64, 0x00, 0x60, 0x09, 0xA0, 0x0F, 0x59, 0x3F, 0x69, 0x64, 0x64, 0x00,
-        0x00, 0x00, 0x19, 0x10, 0x1A, 0x00, 0x2F, 0x03, 0xE8, 0x03, 0xF4, 0x01,
-        0x40, 0x06, 0x01, 0x00, 0x00, 0x00, 0x59, 0x32, 0x3F, 0x00, 0x69, 0x64,
-        0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
+        0x40, 0x30, 0x30, 0x34, 0x43, 0x4C, 0x00, 0xFF, 0x02, 0x47, 0x13, 0x80,
+        0x02, 0x1D, 0x05, 0x23, 0x11, 0x99, 0x99, 0x99, 0x05, 0xE1, 0x7A, 0x14,
+        0x00, 0x99, 0x99, 0x99, 0x05, 0xEB, 0x51, 0xB8, 0x03, 0x32, 0x00, 0x64,
+        0x00, 0x60, 0x09, 0xA0, 0x0F, 0x59, 0x3F, 0x69, 0x64, 0x64, 0x00, 0x00,
+        0x00, 0x19, 0x10, 0x1A, 0x00, 0x2F, 0x03, 0xE8, 0x03, 0xF4, 0x01, 0x40,
+        0x06, 0x01, 0x00, 0x00, 0x00, 0x59, 0x32, 0x3F, 0x00, 0x69, 0x64, 0x00,
+        0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
 
     uint16_t range_scale = uint16_t(floor(range * 10 + 0.5));
-    msg[36] = static_cast<uint8_t>(range_scale & 0x00FF);
-    msg[37] = static_cast<uint8_t>(range_scale >> 8);
+    msg[35] = static_cast<uint8_t>(range_scale & 0x00FF);
+    msg[36] = static_cast<uint8_t>(range_scale >> 8);
 
-    msg[51] = step_angle_size;
+    msg[50] = step_angle_size;
 
-    msg[38] = static_cast<uint8_t>(left_limit & 0x00FF);
-    msg[39] = static_cast<uint8_t>(left_limit >> 8);
+    msg[37] = static_cast<uint8_t>(left_limit & 0x00FF);
+    msg[38] = static_cast<uint8_t>(left_limit >> 8);
 
-    msg[40] = static_cast<uint8_t>(right_limit & 0x00FF);
-    msg[41] = static_cast<uint8_t>(right_limit >> 8);
+    msg[39] = static_cast<uint8_t>(right_limit & 0x00FF);
+    msg[40] = static_cast<uint8_t>(right_limit >> 8);
 
-    msg[54] = static_cast<uint8_t>(n_bins & 0x00FF);
-    msg[55] = static_cast<uint8_t>(n_bins >> 8);
+    msg[53] = static_cast<uint8_t>(n_bins & 0x00FF);
+    msg[54] = static_cast<uint8_t>(n_bins >> 8);
 
     // time travel = (2 * range / vos) in milliseconds
     double time_travel = 1000.0 * (2.0 * range / vos);
@@ -393,15 +393,14 @@ struct mtHeadCommandMsg {
         static_cast<uint16_t>(std::ceil(sample_time / 640.0 * 1000.0));
 
     // AD Span is sent back to user in dB
-    msg[42] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[41] = static_cast<uint8_t>(255 * ad_span / 80);
 
     // AD Low is sent back to user in dB
-    msg[43] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[42] = static_cast<uint8_t>(255 * ad_low / 80);
 
-    msg[52] = static_cast<uint8_t>(ad_interval & 0x00FF);
-    msg[53] = static_cast<uint8_t>(ad_interval >> 8);
+    msg[51] = static_cast<uint8_t>(ad_interval & 0x00FF);
+    msg[52] = static_cast<uint8_t>(ad_interval >> 8);
 
-    msg.erase(msg.begin());
     return msg;
   }
 };
@@ -520,20 +519,20 @@ struct mtHeadDataMsg {
   }
 
   mtHeadDataMsg(SonarMessage const &msg) {
-    msg.IsByteEqual('@', 1);
-    msg.IsByteEqual(mtHeadData, 11);
+    msg.IsByteEqual('@', 0);
+    msg.IsByteEqual(mtHeadData, 10);
 
-    uint8_t msg_sequence = msg.data[12];
+    uint8_t msg_sequence = msg.data[11];
     packet_sequence = msg_sequence & static_cast<uint8_t>(0xEF);
     is_last_in_sequence = msg_sequence & static_cast<uint8_t>(0x80);
 
-    std::bitset<8> head_status_bitset = msg.data[17];
+    std::bitset<8> head_status_bitset = msg.data[16];
     head_status.head_power_loss = head_status_bitset[0];
     head_status.motor_error = head_status_bitset[1];
     head_status.data_range = head_status_bitset[4];
     head_status.message_appended = head_status_bitset[7];
 
-    switch (msg.data[18]) {
+    switch (msg.data[17]) {
       case 0:
         sweep_code = Scanning_Normal;
         break;
@@ -547,12 +546,12 @@ struct mtHeadDataMsg {
         sweep_code = Scan_AtCentre;
         break;
       default:
-        ROS_ERROR("Unknown Sweep Code (%u)", msg.data[18]);
+        ROS_ERROR("Unknown Sweep Code (%u)", msg.data[17]);
         break;
     }
 
     std::bitset<16> head_control_bitset =
-        msg.data[19] | static_cast<uint16_t>(msg.data[20]) << 8;
+        msg.data[18] | static_cast<uint16_t>(msg.data[19]) << 8;
     head_control.adc8on = head_control_bitset[0];
     head_control.cont = head_control_bitset[1];
     head_control.scan_right = head_control_bitset[2];
@@ -570,12 +569,12 @@ struct mtHeadDataMsg {
     head_control.reply_thr = head_control_bitset[14];
     head_control.ignore_sensor = head_control_bitset[15];
 
-    range_scale = ((static_cast<uint16_t>(msg.data[21]) |
-                    (static_cast<uint16_t>(msg.data[22]) << 8)) &
+    range_scale = ((static_cast<uint16_t>(msg.data[20]) |
+                    (static_cast<uint16_t>(msg.data[21]) << 8)) &
                    0xC0FF) /
                   10;
 
-    switch (msg.data[22] >> 6) {
+    switch (msg.data[21] >> 6) {
       case 0:
         range_units = meters;
         break;
@@ -589,24 +588,24 @@ struct mtHeadDataMsg {
         range_units = yards;
         break;
       default:
-        ROS_ERROR("Unknown range units Code (%u)", (msg.data[22] >> 6));
+        ROS_ERROR("Unknown range units Code (%u)", (msg.data[21] >> 6));
         break;
     }
 
     // Step angle size is giving in degree (1 Gradian = 0.9°)
-    step_angle_size = msg.data[40] / 16.0f * 180.0f / 200.0f;
+    step_angle_size = msg.data[39] / 16.0f * 180.0f / 200.0f;
     // Transducer bearing is giving in degree
     transducer_bearing =
-        (msg.data[41] | (msg.data[42]) << 8) / 16.0f * 180.0f / 200.0f;
+        (msg.data[41] | (msg.data[41]) << 8) / 16.0f * 180.0f / 200.0f;
 
     // AD Span is sent back to user in dB
-    ad_span = static_cast<uint8_t>(msg.data[30] / 255.0f * 80.0f);
+    ad_span = static_cast<uint8_t>(msg.data[29] / 255.0f * 80.0f);
 
     // AD Low is sent back to user in dB
-    ad_low = static_cast<uint8_t>(msg.data[31] / 255.0f * 80.0f);
+    ad_low = static_cast<uint8_t>(msg.data[30] / 255.0f * 80.0f);
 
     uint16_t data_bytes =
-        static_cast<uint16_t>((msg.data[43]) | (uint16_t(msg.data[44]) << 8));
+        static_cast<uint16_t>((msg.data[42]) | (uint16_t(msg.data[43]) << 8));
 
     // If adc8on = 1, data_bytes = n_bin
     // Else, data_bytes = n_bin / 2
@@ -667,17 +666,16 @@ struct mtHeadCommandShortMsg {
     // with our parameters. We start this vector with 0x00 to match the
     // datasheet bytes numerotation.
     std::vector<uint8_t> msg = {
-        0x00, 0x40, 0x30, 0x30, 0x31, 0x39, 0x19, 0x00, 0xFF, 0x02, 0x14, 0x13,
-        0x80, 0x02, 0x1E, 0x5C, 0x32, 0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
+        0x40, 0x30, 0x30, 0x31, 0x39, 0x19, 0x00, 0xFF, 0x02, 0x14, 0x13, 0x80,
+        0x02, 0x1E, 0x5C, 0x32, 0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
 
     // AD Span is sent back to user in dB
-    msg[16] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[14] = static_cast<uint8_t>(255 * ad_span / 80);
 
     // AD Low is sent back to user in dB
-    msg[18] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[16] = static_cast<uint8_t>(255 * ad_low / 80);
 
-    msg.erase(msg.begin());
     return msg;
   }
 };
