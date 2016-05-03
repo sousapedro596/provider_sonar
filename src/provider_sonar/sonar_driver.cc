@@ -43,10 +43,10 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       state_(scanning),
       its_raw_msg_(),
       its_msg_(),
-      has_heard_mtAlive_(true),
-      has_heard_mtVersionData_(true),
-      has_heard_mtHeadData_(true),
-      has_params_(true),
+      has_heard_mtAlive_(false),
+      has_heard_mtVersionData_(false),
+      has_heard_mtHeadData_(false),
+      has_params_(false),
       serial_(),
       its_running_(false),
       its_debug_mode_(debug_mode) {
@@ -110,7 +110,7 @@ bool SonarDriver::Connect(std::string const &devName) {
   ROS_INFO("Connected");
 
   sleep(1);
-  //serial_.writeVector(mtRebootMsg);
+  serial_.writeVector(mtRebootMsg);
 
   its_running_ = true;
   its_serial_thread_ =
@@ -125,10 +125,15 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
-                                  right_limit_, angle_step_size_, ad_span_,
-                                  ad_low_);
-  serial_.writeVector(headCommandMsg.Construct());
+  if(has_params_) {
+    mtHeadCommandShortMsg headCommandShortMsg(ad_span_, ad_low_);
+    serial_.writeVector(headCommandShortMsg.Construct());
+  } else {
+    mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
+                                    right_limit_, angle_step_size_, ad_span_,
+                                    ad_low_);
+    serial_.writeVector(headCommandMsg.Construct());
+  }
 }
 
 //------------------------------------------------------------------------------
