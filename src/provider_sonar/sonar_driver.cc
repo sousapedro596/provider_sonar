@@ -418,6 +418,10 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtBBUserData) {
     if (its_debug_mode_) ROS_INFO("Received mtBBUserData Message");
+  } else if (msg.id == mtFpgaCalData) {
+    if (its_debug_mode_) ROS_INFO("Received mtFpgaCalData Message");
+  } else if (msg.id == mtFpgaVersionData) {
+    if (its_debug_mode_) ROS_INFO("Received mtFpgaVersionData Message");
   } else {
     ROS_ERROR_STREAM("Unhandled Message Type: " << msg.id);
   }
