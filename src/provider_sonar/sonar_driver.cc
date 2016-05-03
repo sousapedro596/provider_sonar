@@ -417,6 +417,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     if (its_debug_mode_) ROS_INFO("Received mtHeadData Message");
     if (its_debug_mode_) parsedMsg.Print();
   } else if (msg.id == mtBBUserData) {
+    has_heard_mtSendBBUser_ = true;
     if (its_debug_mode_) ROS_INFO("Received mtBBUserData Message");
   } else if (msg.id == mtFpgaCalData) {
     if (its_debug_mode_) ROS_INFO("Received mtFpgaCalData Message");
