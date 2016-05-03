@@ -44,9 +44,11 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_raw_msg_(),
       its_msg_(),
       has_heard_mtAlive_(false),
+      has_heard_mtSendBBUser_(false),
       has_heard_mtVersionData_(false),
       has_heard_mtHeadData_(false),
       has_params_(false),
+      ack_params_(false),
       serial_(),
       its_running_(false),
       its_debug_mode_(debug_mode) {
@@ -206,33 +208,55 @@ void SonarDriver::ProcessingThreadMethod() {
           state_ = waitingforMtAlive_2;
           break;
         case waitingforMtAlive_2:  // Waiting for MtAlive
+          while (!has_heard_mtAlive_) {
+            sleep(1);
+            ROS_INFO("Waiting");
+          }
+          if (its_debug_mode_)
+            ROS_INFO("----------Received mtAlive----------Case 3------");
+          state_ = sendBBUser;
+          break;
+        case sendBBUser:  // Waiting for MtSendBBUser
+          while (!has_heard_mtSendBBUser_) {
+            serial_.writeVector(mtSendBBUserMsg);
+            sleep(1);
+          }
+          if (its_debug_mode_)
+            ROS_INFO("----------Received sendBBUser----Case 4------");
+          state_ = waitingforMtAlive_3;
+          break;
+        case waitingforMtAlive_3:  // Waiting for MtAlive
           has_heard_mtAlive_ = false;
           while (!has_heard_mtAlive_) sleep(1);
           if (its_debug_mode_)
-            ROS_INFO("----------Received mtAlive----------Case 3------");
+            ROS_INFO("----------Received mtAlive----------Case 5------");
           if (has_params_) {
-            state_ = scanning;
+            if (ack_params_) {
+              state_ = scanning;
+            } else {
+              state_ = waitingforMtAlive_3;
+            }
           } else {
             state_ = configuring;
           }
           break;
         case configuring:  // Configure the Sonar
           if (its_debug_mode_) {
-            ROS_INFO("----------Configuring Sonar---------Case 4------");
+            ROS_INFO("----------Configuring Sonar---------Case 6------");
           }
           Configure();
           if (its_debug_mode_) {
-            ROS_INFO("Changing to State 3");
+            ROS_INFO("Changing to State 4");
           }
           sleep(5);
-          state_ = waitingforMtAlive_2;
+          state_ = waitingforMtAlive_3;
           break;
         case scanning:  // Send mtSend Data
 
           if (firstSemaphore == green) {
             firstSemaphore = red;
             if (its_debug_mode_) {
-              ROS_INFO("----------Scanning----------------Case 5------");
+              ROS_INFO("----------Scanning----------------Case 7------");
             }
             sleep(1);
             serial_.writeVector(mtSendDataMsg);
@@ -356,6 +380,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     mtAliveMsg parsedMsg(msg);
     has_heard_mtAlive_ = true;
     has_params_ = !parsedMsg.no_params;
+    ack_params_ = parsedMsg.sent_cfg;
 
     if (its_debug_mode_) ROS_INFO("Received mtAlive Message");
     if (its_debug_mode_) parsedMsg.Print();

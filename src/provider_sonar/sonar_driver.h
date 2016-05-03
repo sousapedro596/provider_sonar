@@ -58,7 +58,9 @@ class SonarDriver {
   enum StateMachineStates {
     waitingforMtAlive_1,
     waitingforMtAlive_2,
+    waitingforMtAlive_3,
     versionData,
+    sendBBUser,
     configuring,
     scanning,
     reset
@@ -139,10 +141,12 @@ class SonarDriver {
   SonarMessage its_msg_;
   bool has_heard_mtAlive_;  // Have we ever heard an mtAlive message from the
                             // sonar?
+  bool has_heard_mtSendBBUser_;
   bool has_heard_mtVersionData_;  // Have we ever heard an mtVersionData from
                                   // the sonar?
   bool has_heard_mtHeadData_;  // Have we received a mtHeadData from the sonar?
   bool has_params_;            // Has the Sonar received it's parameters?
+  bool ack_params_;            // Has the Sonar acknoledge its parameters?
   SerialPort serial_;          // The actual serial port
   bool its_running_;           // Are we currently running?
   // Should we be printing debugging information to the console? Warning, this

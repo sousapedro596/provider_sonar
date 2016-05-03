@@ -135,7 +135,7 @@ static std::vector<uint8_t> mtSendBBUserMsg = {
     0xFF,  // tx_node
     0x02,  // rx_node
     0x03,  // n_byte
-    0x17,  // mtSendVersion
+    0x18,  // mtSendVersion
     0x80,  // message_sequence
     0x02,  // node
     0x0A   // line_feed
