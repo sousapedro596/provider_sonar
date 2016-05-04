@@ -56,14 +56,13 @@ class SonarDriver {
 
   // States for the protocol state machine
   enum StateMachineStates {
+    reboot,
     waitingforMtAlive_1,
     waitingforMtAlive_2,
-    waitingforMtAlive_3,
     versionData,
     sendBBUser,
-    configuring,
-    scanning,
-    reset
+    headCommand,
+    scanning
   };
 
   //==========================================================================
