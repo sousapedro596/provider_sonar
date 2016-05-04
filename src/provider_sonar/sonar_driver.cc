@@ -130,11 +130,13 @@ void SonarDriver::Configure() {
   if (has_params_) {
     mtHeadCommandShortMsg headCommandShortMsg(ad_span_, ad_low_);
     serial_.writeVector(headCommandShortMsg.Construct());
+    ROS_INFO("Send mtHeadCommandShort Message");
   } else {
     mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
                                     right_limit_, angle_step_size_, ad_span_,
                                     ad_low_);
     serial_.writeVector(headCommandMsg.Construct());
+    ROS_INFO("Send mtHeadCommand Message");
   }
 }
 
@@ -192,49 +194,40 @@ void SonarDriver::ProcessingThreadMethod() {
         case reboot:
           while (!ack_params_) {
             serial_.writeVector(mtRebootMsg);
+            ROS_INFO("Send mtReboot Message");
             sleep(1);
-            ROS_INFO("Rebooting");
-          }
-          if (its_debug_mode_) {
-            ROS_INFO("----------Rebooted----------");
           }
           state_ = waitingforMtAlive_1;
           break;
         case waitingforMtAlive_1:  // Waiting for MtAlive
           while (!has_heard_mtAlive_) {
+            ROS_INFO("Waiting for mtAlive Message");
             sleep(1);
-            ROS_INFO("Waiting");
           }
-          if (its_debug_mode_)
-            ROS_INFO("----------Received mtAlive----------");
           state_ = versionData;
           break;
         case versionData:  // Waiting for MtVersion Data
           while (!has_heard_mtVersionData_) {
             serial_.writeVector(mtSendVersionMsg);
+            ROS_INFO("Send mtSendVersion Message");
             sleep(1);
           }
-          if (its_debug_mode_)
-            ROS_INFO("----------Received mtVersionData----------");
           state_ = sendBBUser;
           break;
         case sendBBUser:  // Waiting for MtSendBBUser
           while (!has_heard_mtSendBBUser_) {
             serial_.writeVector(mtSendBBUserMsg);
+            ROS_INFO("Send mtSendBBUser Message");
             sleep(1);
           }
-          if (its_debug_mode_)
-            ROS_INFO("----------Received sendBBUser----------");
           state_ = waitingforMtAlive_2;
           break;
         case waitingforMtAlive_2:  // Waiting for MtAlive
           has_heard_mtAlive_ = false;
           while (!has_heard_mtAlive_) {
+            ROS_INFO("Waiting for mtAlive Message");
             sleep(1);
-            ROS_INFO("Waiting");
           }
-          if (its_debug_mode_)
-            ROS_INFO("----------Received mtAlive----------");
           if (has_params_) {
             if (ack_params_) {
               state_ = scanning;
@@ -246,9 +239,6 @@ void SonarDriver::ProcessingThreadMethod() {
           }
           break;
         case headCommand:  // Configure the Sonar
-          if (its_debug_mode_) {
-            ROS_INFO("----------Configuring Sonar------------");
-          }
           Configure();
           sleep(5);
           state_ = waitingforMtAlive_2;
@@ -256,11 +246,9 @@ void SonarDriver::ProcessingThreadMethod() {
         case scanning:  // Send mtSend Data
           if (firstSemaphore == green) {
             firstSemaphore = red;
-            if (its_debug_mode_) {
-              ROS_INFO("----------Scanning--------------");
-            }
             sleep(1);
             serial_.writeVector(mtSendDataMsg);
+            ROS_INFO("Send mtSendData Message");
           }
           if (waitedPeriods > 15) {
             if (its_debug_mode_) ROS_INFO("Scanning Resending request");
@@ -372,16 +360,20 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
     mtVersionDataMsg parsedMsg(msg);
     has_heard_mtVersionData_ = true;
 
-    if (its_debug_mode_) ROS_INFO("Received mtVersionData Message");
-    if (its_debug_mode_) parsedMsg.Print();
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtVersionData Message");
+      parsedMsg.Print();
+    }
   } else if (msg.id == mtAlive) {
     mtAliveMsg parsedMsg(msg);
     has_heard_mtAlive_ = true;
     has_params_ = !parsedMsg.no_params;
     ack_params_ = parsedMsg.sent_cfg;
 
-    if (its_debug_mode_) ROS_INFO("Received mtAlive Message");
-    if (its_debug_mode_) parsedMsg.Print();
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtAlive Message");
+      parsedMsg.Print();
+    }
   } else if (msg.id == mtHeadData) {
     mtHeadDataMsg parsedMsg(msg);
     has_heard_mtHeadData_ = true;
@@ -390,7 +382,7 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
       serial_.writeVector(mtSendDataMsg);
     }
 
-    float range_meters;
+    double range_meters = 0;
     switch (parsedMsg.range_units) {
       case mtHeadDataMsg::meters:
         range_meters = parsedMsg.range_scale;
@@ -406,21 +398,29 @@ void SonarDriver::ProcessMessage(SonarMessage msg) {
         break;
     }
 
-    float metersPerBin = range_meters / parsedMsg.scanline.size();
+    double metersPerBin = range_meters / parsedMsg.scanline.size();
     if (its_scanline_callback) {
       its_scanline_callback(parsedMsg.transducer_bearing, metersPerBin,
                             parsedMsg.scanline);
     }
 
-    if (its_debug_mode_) ROS_INFO("Received mtHeadData Message");
-    if (its_debug_mode_) parsedMsg.Print();
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtHeadData Message");
+      parsedMsg.Print();
+    }
   } else if (msg.id == mtBBUserData) {
     has_heard_mtSendBBUser_ = true;
-    if (its_debug_mode_) ROS_INFO("Received mtBBUserData Message");
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtBBUserData Message");
+    }
   } else if (msg.id == mtFpgaCalData) {
-    if (its_debug_mode_) ROS_INFO("Received mtFpgaCalData Message");
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtFpgaCalData Message");
+    }
   } else if (msg.id == mtFpgaVersionData) {
-    if (its_debug_mode_) ROS_INFO("Received mtFpgaVersionData Message");
+    if (its_debug_mode_) {
+      ROS_INFO("Received mtFpgaVersionData Message");
+    }
   } else {
     ROS_ERROR_STREAM("Unhandled Message Type: " << msg.id);
   }
