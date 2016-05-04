@@ -356,8 +356,7 @@ struct mtHeadCommandMsg {
   // Construct the message vector from the given parameters
   std::vector<uint8_t> Construct() {
     // This is the skeleton message, we overwrite some of those bytes
-    // with our parameters. We start this vector with 0x00 to match the
-    // datasheet bytes numerotation.
+    // with our parameters.
     std::vector<uint8_t> msg = {
         0x40, 0x30, 0x30, 0x34, 0x43, 0x4C, 0x00, 0xFF, 0x02, 0x47, 0x13, 0x80,
         0x02, 0x1D, 0x05, 0x23, 0x11, 0x99, 0x99, 0x99, 0x05, 0xE1, 0x7A, 0x14,

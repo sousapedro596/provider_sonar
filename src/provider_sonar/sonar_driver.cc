@@ -127,17 +127,17 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-  if (has_params_) {
-    mtHeadCommandShortMsg headCommandShortMsg(ad_span_, ad_low_);
-    serial_.writeVector(headCommandShortMsg.Construct());
-    ROS_INFO("Send mtHeadCommandShort Message");
-  } else {
-    mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
-                                    right_limit_, angle_step_size_, ad_span_,
-                                    ad_low_);
-    serial_.writeVector(headCommandMsg.Construct());
-    ROS_INFO("Send mtHeadCommand Message");
-  }
+  //  if (has_params_) {
+  //    mtHeadCommandShortMsg headCommandShortMsg(ad_span_, ad_low_);
+  //    serial_.writeVector(headCommandShortMsg.Construct());
+  //    ROS_INFO("Send mtHeadCommandShort Message");
+  //  } else {
+  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
+                                  right_limit_, angle_step_size_, ad_span_,
+                                  ad_low_);
+  serial_.writeVector(headCommandMsg.Construct());
+  ROS_INFO("Send mtHeadCommand Message");
+  //  }
 }
 
 //------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void SonarDriver::ProcessingThreadMethod() {
     if (state_machine_semaphore_ == green) {
       switch (state_) {
         case reboot:
-          while (!ack_params_) {
+          while (ack_params_) {
             serial_.writeVector(mtRebootMsg);
             ROS_INFO("Send mtReboot Message");
             sleep(1);
@@ -212,7 +212,7 @@ void SonarDriver::ProcessingThreadMethod() {
             ROS_INFO("Send mtSendVersion Message");
             sleep(1);
           }
-          state_ = sendBBUser;
+          state_ = waitingforMtAlive_2;
           break;
         case sendBBUser:  // Waiting for MtSendBBUser
           while (!has_heard_mtSendBBUser_) {
@@ -229,18 +229,14 @@ void SonarDriver::ProcessingThreadMethod() {
             sleep(1);
           }
           if (has_params_) {
-            if (ack_params_) {
-              state_ = scanning;
-            } else {
-              state_ = waitingforMtAlive_2;
-            }
+            state_ = scanning;
           } else {
             state_ = headCommand;
           }
           break;
         case headCommand:  // Configure the Sonar
           Configure();
-          sleep(5);
+          sleep(4);
           state_ = waitingforMtAlive_2;
           break;
         case scanning:  // Send mtSend Data
@@ -337,8 +333,6 @@ void SonarDriver::ProcessByte(uint8_t byte) {
   }
 
   if (its_state_ == ReadingData) {
-    // if(itsDebugMode) std::cout <<"  Remaining bytes: "<< std::dec  <<
-    // uint16_t(itsMsg.binLength - (itsRawMsg.size() - 7)) << std::dec;
     if (uint16_t(its_msg_.binary_length - (its_raw_msg_.size() - 6)) == 0) {
       if (byte == 0x0A) {
         its_msg_.data = its_raw_msg_;
