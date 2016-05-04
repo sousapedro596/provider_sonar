@@ -392,9 +392,13 @@ struct mtHeadCommandMsg {
 
     // AD Span is sent back to user in dB
     msg[41] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[65] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[66] = static_cast<uint8_t>(255 * ad_span / 80);
 
     // AD Low is sent back to user in dB
     msg[42] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[67] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[68] = static_cast<uint8_t>(255 * ad_low / 80);
 
     msg[51] = static_cast<uint8_t>(ad_interval & 0x00FF);
     msg[52] = static_cast<uint8_t>(ad_interval >> 8);
