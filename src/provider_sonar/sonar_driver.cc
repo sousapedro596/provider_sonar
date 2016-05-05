@@ -125,16 +125,10 @@ bool SonarDriver::Connect(std::string const &devName) {
 //------------------------------------------------------------------------------
 //
 void SonarDriver::Configure() {
-    if (has_params_) {
-      mtHeadCommandShortMsg headCommandShortMsg(gain_);
-      serial_.writeVector(headCommandShortMsg.Construct());
-      ROS_INFO("Send mtHeadCommandShort Message");
-    } else {
-      mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
+  mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
                                   right_limit_, angle_step_size_, gain_);
-      serial_.writeVector(headCommandMsg.Construct());
-      ROS_INFO("Send mtHeadCommand Message");
-    }
+  serial_.writeVector(headCommandMsg.Construct());
+  ROS_INFO("Send mtHeadCommand Message");
 }
 
 //------------------------------------------------------------------------------

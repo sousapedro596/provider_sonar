@@ -593,7 +593,7 @@ struct mtHeadDataMsg {
     transducer_bearing =
         (msg.data[40] | (msg.data[41]) << 8) / 16.0f * 180.0f / 200.0f;
 
-    gain = msg.data[26] / 210;
+    gain = msg.data[26] / 210.0f;
 
     uint16_t data_bytes =
         static_cast<uint16_t>((msg.data[42]) | (uint16_t(msg.data[43]) << 8));
