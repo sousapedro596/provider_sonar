@@ -44,8 +44,7 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       angle_step_size(16),
       left_limit(2400),
       right_limit(4000),
-      ad_span(15),
-      ad_low(26),
+      gain(0.5),
       use_debug_mode(false),
       simulate(false),
       simulate_n_bins(400),
@@ -82,8 +81,7 @@ void SonarConfiguration::DeserializeConfiguration() {
   FindParameter("/sonar/angle_step_size_", angle_step_size);
   FindParameter("/sonar/left_limit_", left_limit);
   FindParameter("/sonar/right_limit_", right_limit);
-  FindParameter("/sonar/ad_span_", ad_span);
-  FindParameter("/sonar/ad_low_", ad_low);
+  FindParameter("/sonar/gain_", gain);
   FindParameter("/sonar/use_debug_mode_", use_debug_mode);
   FindParameter("/simulate/simulate_", simulate);
   FindParameter("/simulate/simulate_n_bins_", simulate_n_bins);

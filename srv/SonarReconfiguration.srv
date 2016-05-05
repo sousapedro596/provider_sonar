@@ -4,9 +4,7 @@ float64 vos
 uint16 left_limit
 uint16 right_limit
 uint8 step_angle_size
-uint8 ad_span
-uint8 ad_low
-uint8 igain
+float64 gain
 bool debug_mode
 ---
 bool result

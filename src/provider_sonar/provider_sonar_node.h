@@ -92,7 +92,7 @@ class ProviderSonarNode {
 
   void PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos,
       uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit,
-      uint8_t ad_span, uint8_t ad_low);
+      float gain);
 
   /**
    * This function is a callback associated with the reception of a scanline

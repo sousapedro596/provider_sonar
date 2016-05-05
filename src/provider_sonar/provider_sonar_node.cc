@@ -54,8 +54,7 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         static_cast<uint8_t>(config_.angle_step_size),
         static_cast<uint16_t>(config_.left_limit),
         static_cast<uint16_t>(config_.right_limit),
-        static_cast<uint8_t>(config_.ad_span),
-        static_cast<uint8_t>(config_.ad_low), config_.use_debug_mode);
+        config_.gain, config_.use_debug_mode);
 
     sonar_reconfig_server_ =
         nh->advertiseService("sonar_reconfiguration",
@@ -109,8 +108,7 @@ void ProviderSonarNode::Spin() {
                                           static_cast<uint8_t>(config_.angle_step_size),
                                           static_cast<uint16_t>(config_.left_limit),
                                           static_cast<uint16_t>(config_.right_limit),
-                                          static_cast<uint8_t>(config_.ad_span),
-                                          static_cast<uint8_t>(config_.ad_low));
+                                          config_.gain);
         previous = ros::Time::now();
       }
     }
@@ -129,12 +127,14 @@ bool ProviderSonarNode::SonarReconfiguration(
   config_.angle_step_size = req.step_angle_size;
   config_.left_limit = req.left_limit;
   config_.right_limit = req.right_limit;
-  config_.ad_span = req.ad_span;
-  config_.ad_low = req.ad_low;
+  config_.gain = static_cast<float>(req.gain);
 
-  driver_->Reconfigure(config_.n_bins, config_.range,config_.vos, config_.angle_step_size,
-                       config_.left_limit, config_.right_limit, config_.ad_span, config_.ad_low,
-                       req.igain, req.debug_mode);
+  driver_->Reconfigure(static_cast<uint16_t>(config_.n_bins),
+                       config_.range,config_.vos,
+                       static_cast<uint8_t>(config_.angle_step_size),
+                       static_cast<uint16_t>(config_.left_limit),
+                       static_cast<uint16_t>(config_.right_limit),
+                       config_.gain, req.debug_mode);
   return true;
 }
 
@@ -152,7 +152,9 @@ bool ProviderSonarNode::PointCloudReconfiguration(
 
 //------------------------------------------------------------------------------
 //
-void ProviderSonarNode::PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos, uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit, uint8_t ad_span, uint8_t ad_low) {
+void ProviderSonarNode::PublishProviderSonarConfiguration(
+    uint16_t n_bin, float range, float vos, uint8_t angle_step_size,
+    uint16_t left_limit, uint16_t right_limit, float gain) {
   provider_sonar::ProviderSonarConfiguration provider_sonar_config_msg;
 
   provider_sonar_config_msg.n_bin = n_bin;
@@ -161,8 +163,7 @@ void ProviderSonarNode::PublishProviderSonarConfiguration(uint16_t n_bin, float 
   provider_sonar_config_msg.angle_step_size = angle_step_size;
   provider_sonar_config_msg.left_limit = left_limit;
   provider_sonar_config_msg.right_limit = right_limit;
-  provider_sonar_config_msg.ad_span = ad_span;
-  provider_sonar_config_msg.ad_low = ad_low;
+  provider_sonar_config_msg.gain = gain;
 
   sonar_configuration_pub_.publish(provider_sonar_config_msg);
 }
@@ -223,7 +224,6 @@ void ProviderSonarNode::PublishPointCloud2(
   float coordinate_z = 0;
   for (size_t i = 0; i < bins.size();
        ++i, coordinate_x += delta_x, coordinate_y += delta_y) {
-    ROS_INFO("---------------------------  %d", bins[i].intensity);
     float bin_intensity = static_cast<float>((bins[i].intensity) / 255.0);
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
                                   point_cloud_msg_.fields[0].offset],
