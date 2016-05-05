@@ -93,7 +93,7 @@ class SonarDriver {
   // without restarting the driver
   void Reconfigure(uint16_t n_bins, float range, float vos,
                    uint8_t step_angle_size, uint16_t left_limit,
-                   uint16_t right_limit, uint8_t ad_span, uint8_t ad_low,
+                   uint16_t right_limit, uint8_t ad_span, uint8_t ad_low, uint8_t igain,
                    bool debug_mode);
 
   void ScanLineCallback(
@@ -104,7 +104,7 @@ class SonarDriver {
   // This function sets the necessary parameters for the Sonar operation.
   void SetParameters(uint16_t n_bins, float range, float vos,
                      uint8_t angle_step_size, uint16_t left_limit,
-                     uint16_t right_limit, uint8_t ad_span, uint8_t ad_low,
+                     uint16_t right_limit, uint8_t ad_span, uint8_t ad_low, uint8_t igain,
                      bool debug_mode);
 
   // Process a single incoming byte (add it onto itsRawMsg, etc.)
@@ -159,6 +159,7 @@ class SonarDriver {
   uint16_t right_limit_;
   uint8_t ad_span_;
   uint8_t ad_low_;
+  uint8_t igain_;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
                      std::vector<uint8_t> /*scanline*/)> its_scanline_callback;

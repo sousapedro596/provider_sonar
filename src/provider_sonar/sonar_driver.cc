@@ -54,7 +54,7 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_debug_mode_(debug_mode) {
   ResetMessage();
   SetParameters(n_bins, range, vos, angle_step_size, left_limit, right_limit,
-                ad_span, ad_low, debug_mode);
+                ad_span, ad_low, 100, debug_mode);
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ void SonarDriver::Disconnect() {
 void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
                                 uint8_t angle_step_size, uint16_t left_limit,
                                 uint16_t right_limit, uint8_t ad_span,
-                                uint8_t ad_low, bool debug_mode) {
+                                uint8_t ad_low, uint8_t igain, bool debug_mode) {
   n_bins_ = n_bins;
   range_ = range;
   vos_ = vos;
@@ -95,6 +95,7 @@ void SonarDriver::SetParameters(uint16_t n_bins, float range, float vos,
   right_limit_ = right_limit;
   ad_span_ = ad_span;
   ad_low_ = ad_low;
+  igain_ = igain;
   its_debug_mode_ = debug_mode;
 }
 
@@ -134,7 +135,7 @@ void SonarDriver::Configure() {
   //  } else {
   mtHeadCommandMsg headCommandMsg(n_bins_, range_, vos_, left_limit_,
                                   right_limit_, angle_step_size_, ad_span_,
-                                  ad_low_);
+                                  ad_low_, igain_);
   serial_.writeVector(headCommandMsg.Construct());
   ROS_INFO("Send mtHeadCommand Message");
   //  }
@@ -145,10 +146,10 @@ void SonarDriver::Configure() {
 void SonarDriver::Reconfigure(uint16_t n_bins, float range, float vos,
                               uint8_t step_angle_size, uint16_t left_limit,
                               uint16_t right_limit, uint8_t ad_span,
-                              uint8_t ad_low, bool debug_mode) {
+                              uint8_t ad_low,uint8_t igain, bool debug_mode) {
   // Load the new values
   SetParameters(n_bins, range, vos, step_angle_size, left_limit, right_limit,
-                ad_span, ad_low, debug_mode);
+                ad_span, ad_low, igain, debug_mode);
   // Set the semaphore to red in order not to access the state variable at the
   // same time
   state_machine_semaphore_ = red;

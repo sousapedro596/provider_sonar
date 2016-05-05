@@ -134,7 +134,7 @@ bool ProviderSonarNode::SonarReconfiguration(
 
   driver_->Reconfigure(config_.n_bins, config_.range,config_.vos, config_.angle_step_size,
                        config_.left_limit, config_.right_limit, config_.ad_span, config_.ad_low,
-                       req.debug_mode);
+                       req.igain, req.debug_mode);
   return true;
 }
 
@@ -223,6 +223,7 @@ void ProviderSonarNode::PublishPointCloud2(
   float coordinate_z = 0;
   for (size_t i = 0; i < bins.size();
        ++i, coordinate_x += delta_x, coordinate_y += delta_y) {
+    ROS_INFO("---------------------------  %d", bins[i].intensity);
     float bin_intensity = static_cast<float>((bins[i].intensity) / 255.0);
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
                                   point_cloud_msg_.fields[0].offset],

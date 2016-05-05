@@ -320,7 +320,7 @@ struct mtHeadCommandMsg {
   mtHeadCommandMsg(uint16_t n_bins = 400, float range = 8.0f,
                    float vos = 1500.0f, uint16_t left_limit = 2400,
                    uint16_t right_limit = 4000, uint8_t step_angle_size = 16,
-                   uint8_t ad_span = 28, uint8_t ad_low = 20)
+                   uint8_t ad_span = 28, uint8_t ad_low = 20, uint8_t igain = 100)
       : n_bins(n_bins),
         range(range),
         vos(vos),
@@ -328,7 +328,8 @@ struct mtHeadCommandMsg {
         right_limit(right_limit),
         step_angle_size(step_angle_size),
         ad_span(ad_span),
-        ad_low(ad_low) {}
+        ad_low(ad_low),
+        igain(igain) {}
 
   //============================================================================
   // P U B L I C   M E M B E R S
@@ -349,6 +350,7 @@ struct mtHeadCommandMsg {
 
   uint8_t ad_span;  // Set the width of the sampling window in dB
   uint8_t ad_low;   // Set the low bound of the sampling window in dB
+  uint8_t igain;
 
   //============================================================================
   // P U B L I C   M E T H O D S
@@ -399,6 +401,12 @@ struct mtHeadCommandMsg {
     msg[42] = static_cast<uint8_t>(255 * ad_low / 80);
     msg[67] = static_cast<uint8_t>(255 * ad_low / 80);
     msg[68] = static_cast<uint8_t>(255 * ad_low / 80);
+
+    // IGain
+    msg[43] = igain;
+    msg[44] = igain;
+    msg[69] = igain;
+    msg[70] = igain;
 
     msg[51] = static_cast<uint8_t>(ad_interval & 0x00FF);
     msg[52] = static_cast<uint8_t>(ad_interval >> 8);
@@ -649,14 +657,15 @@ struct mtHeadCommandShortMsg {
 
   //----------------------------------------------------------------------------
   //
-  mtHeadCommandShortMsg(uint8_t ad_span = 28, uint8_t ad_low = 20)
-      : ad_span(ad_span), ad_low(ad_low) {}
+  mtHeadCommandShortMsg(uint8_t ad_span = 28, uint8_t ad_low = 20, uint8_t igain = 64)
+      : ad_span(ad_span), ad_low(ad_low), igain(igain) {}
 
   //============================================================================
   // P U B L I C   M E M B E R S
 
   uint8_t ad_span;  // Set the width of the sampling window in dB
   uint8_t ad_low;   // Set the low bound of the sampling window in dB
+  uint8_t igain;
 
   //============================================================================
   // P U B L I C   M E T H O D S
@@ -673,9 +682,14 @@ struct mtHeadCommandShortMsg {
 
     // AD Span is sent back to user in dB
     msg[14] = static_cast<uint8_t>(255 * ad_span / 80);
+    msg[15] = static_cast<uint8_t>(255 * ad_span / 80);
 
     // AD Low is sent back to user in dB
     msg[16] = static_cast<uint8_t>(255 * ad_low / 80);
+    msg[17] = static_cast<uint8_t>(255 * ad_low / 80);
+
+    msg[18] = igain;
+    msg[19] = igain;
 
     return msg;
   }
