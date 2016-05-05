@@ -481,8 +481,7 @@ struct mtHeadDataMsg {
   RangeUnits range_units;
   float step_angle_size;
   float transducer_bearing;  // The current bearing of the sonar head
-  uint8_t ad_span;
-  uint8_t ad_low;
+  float gain;
   std::vector<uint8_t> scanline;
 
   //============================================================================
@@ -510,8 +509,7 @@ struct mtHeadDataMsg {
              range_units ? "feet" : "meter");
     ROS_INFO("  step_angle_size (Degree) : %.2f", step_angle_size);
     ROS_INFO("  transducer_bearing (Degree) : %.2f", transducer_bearing);
-    ROS_INFO("  ad_span : %d", static_cast<int>(ad_span));
-    ROS_INFO("  ad_low : %d", static_cast<int>(ad_low));
+    ROS_INFO("  gain : %.2f", gain);
     ROS_INFO("  scanline.size : %lu", scanline.size());
   }
 
@@ -595,11 +593,7 @@ struct mtHeadDataMsg {
     transducer_bearing =
         (msg.data[40] | (msg.data[41]) << 8) / 16.0f * 180.0f / 200.0f;
 
-    // AD Span is sent back to user in dB
-    ad_span = static_cast<uint8_t>(msg.data[29] / 255.0f * 80.0f);
-
-    // AD Low is sent back to user in dB
-    ad_low = static_cast<uint8_t>(msg.data[30] / 255.0f * 80.0f);
+    gain = msg.data[26] / 210;
 
     uint16_t data_bytes =
         static_cast<uint16_t>((msg.data[42]) | (uint16_t(msg.data[43]) << 8));
