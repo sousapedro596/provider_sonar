@@ -163,11 +163,11 @@ void SonarDriver::SerialThreadMethod() {
   while (its_running_) {
     std::vector<uint8_t> bytes = serial_.read(2048);
     if (bytes.size() > 0) {
-      for (size_t i = 0; i < bytes.size(); ++i) ProcessByte(bytes[i]);
-      // std::cout << " Finished processing read Vector";
+      for (size_t i = 0; i < bytes.size(); ++i) {
+        ProcessByte(bytes[i]);
+      }
     } else {
       usleep(100000);
-      // std::cout << std::endl << "No Serial input" << std::endl;
     }
   }
   ROS_INFO("serialThreadMethod Finished");

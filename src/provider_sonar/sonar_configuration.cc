@@ -39,7 +39,7 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
     : frame_id("BODY"),
       port("/dev/ttyS3"),
       n_bins(400),
-      range(8.0),
+      range(10.0),
       vos(1500.0),
       angle_step_size(16),
       left_limit(2400),

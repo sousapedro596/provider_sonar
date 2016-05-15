@@ -317,7 +317,7 @@ struct mtHeadCommandMsg {
 
   //----------------------------------------------------------------------------
   //
-  mtHeadCommandMsg(uint16_t n_bins = 400, float range = 8.0f,
+  mtHeadCommandMsg(uint16_t n_bins = 400, float range = 10.0f,
                    float vos = 1500.0f, uint16_t left_limit = 2400,
                    uint16_t right_limit = 4000, uint8_t step_angle_size = 16,
                    float gain = 0.5f)
@@ -479,6 +479,7 @@ struct mtHeadDataMsg {
   HeadControl head_control;
   float range_scale;
   RangeUnits range_units;
+  uint16_t ad_interval;
   float step_angle_size;
   float transducer_bearing;  // The current bearing of the sonar head
   float gain;
@@ -507,6 +508,7 @@ struct mtHeadDataMsg {
              head_control.tx_off ? "true" : "false");
     ROS_INFO("  range_scale : %.2f %s", range_scale,
              range_units ? "feet" : "meter");
+    ROS_INFO("  ad_interval : %d", ad_interval);
     ROS_INFO("  step_angle_size (Degree) : %.2f", step_angle_size);
     ROS_INFO("  transducer_bearing (Degree) : %.2f", transducer_bearing);
     ROS_INFO("  gain : %.2f", gain);
@@ -565,9 +567,9 @@ struct mtHeadDataMsg {
     head_control.ignore_sensor = head_control_bitset[15];
 
     range_scale = ((static_cast<uint16_t>(msg.data[20]) |
-                    (static_cast<uint16_t>(msg.data[21]) << 8)) &
-                   0xC0FF) /
-                  10;
+                    (static_cast<uint16_t>(msg.data[21]) << 8)) & 0xC0FF) / 10;
+
+    ad_interval = msg.data[33] | static_cast<uint16_t>(msg.data[34]) << 8;
 
     switch (msg.data[21] >> 6) {
       case 0:
