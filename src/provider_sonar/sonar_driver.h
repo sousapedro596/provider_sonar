@@ -26,7 +26,7 @@
 #include <vector>
 #include "Serial.h"
 #include <boost/thread.hpp>
-#include <bits/shared_ptr.h>
+#include <memory.h>
 #include "stdint.h"
 #include "sonar_configuration.h"
 
@@ -129,8 +129,6 @@ class SonarDriver {
   // protocol
   StateType its_state_;
   Semaphore state_machine_semaphore_;  // State Machine Semaphore
-  Semaphore
-      scanning_callback_semaphore_;  // Scanning callback routine semaphore
   StateMachineStates state_;  // The variable controlling the state machine
   // The current message buffer begin read in
   // the current incoming message begin constructed from itsRawMsg

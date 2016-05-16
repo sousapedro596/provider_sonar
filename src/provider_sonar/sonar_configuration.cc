@@ -55,9 +55,9 @@ SonarConfiguration::SonarConfiguration(const ros::NodeHandlePtr &nh)
       simulate_use_manual_angle(false),
       simulate_manual_angle(180.0),
       simulate_scan_angle_velocity(180.0),
-      use_point_cloud_threshold(true),
       min_distance_threshold(0),
       min_point_cloud_intensity_threshold(0),
+      use_point_cloud_threshold(true),
       only_first_point(false),
       nh_(nh) {
   DeserializeConfiguration();

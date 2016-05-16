@@ -82,14 +82,6 @@ class ProviderSonarNode {
       provider_sonar::SonarReconfiguration::Request &req,
       provider_sonar::SonarReconfiguration::Response &resp);
 
-  bool SimulationReconfiguration(
-      provider_sonar::SimulationReconfiguration::Request &req,
-      provider_sonar::SimulationReconfiguration::Response &resp);
-
-  bool PointCloudReconfiguration(
-      provider_sonar::PointCloudReconfiguration::Request &req,
-      provider_sonar::PointCloudReconfiguration::Response &resp);
-
   void PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos,
       uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit,
       float gain);
@@ -118,8 +110,6 @@ class ProviderSonarNode {
   ros::Publisher point_cloud2_pub_;
   ros::Publisher sonar_configuration_pub_;
   ros::ServiceServer sonar_reconfig_server_;
-  ros::ServiceServer simulation_reconfig_server_;
-  ros::ServiceServer point_cloud_reconfig_server_;
 
   SonarConfiguration config_;
   SonarDriver *driver_;

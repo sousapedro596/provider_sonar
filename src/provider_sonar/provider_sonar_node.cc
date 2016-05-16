@@ -60,14 +60,6 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         nh->advertiseService("sonar_reconfiguration",
                              &ProviderSonarNode::SonarReconfiguration, this);
 
-    simulation_reconfig_server_ = nh->advertiseService(
-        "simulation_reconfiguration",
-        &ProviderSonarNode::SimulationReconfiguration, this);
-
-    point_cloud_reconfig_server_ = nh->advertiseService(
-        "point_cloud_reconfiguration",
-        &ProviderSonarNode::PointCloudReconfiguration, this);
-
     driver_->ScanLineCallback(std::bind(
         &ProviderSonarNode::PublishPointCloud2, this, std::placeholders::_1,
         std::placeholders::_2, std::placeholders::_3));
@@ -137,18 +129,6 @@ bool ProviderSonarNode::SonarReconfiguration(
                        config_.gain, req.debug_mode);
   return true;
 }
-
-//------------------------------------------------------------------------------
-//
-bool ProviderSonarNode::SimulationReconfiguration(
-    provider_sonar::SimulationReconfiguration::Request &req,
-    provider_sonar::SimulationReconfiguration::Response &resp) {}
-
-//------------------------------------------------------------------------------
-//
-bool ProviderSonarNode::PointCloudReconfiguration(
-    provider_sonar::PointCloudReconfiguration::Request &req,
-    provider_sonar::PointCloudReconfiguration::Response &resp) {}
 
 //------------------------------------------------------------------------------
 //
