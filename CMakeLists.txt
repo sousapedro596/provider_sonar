@@ -17,7 +17,7 @@ if ( NOT CMAKE_BUILD_TYPE )
             FORCE )
 endif ( NOT CMAKE_BUILD_TYPE )
 
-set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11" )
+set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -Wall" )
 set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -O3" )
 
 #===============================================================================
@@ -30,8 +30,6 @@ find_package( catkin REQUIRED COMPONENTS
         std_srvs
         lib_atlas
         )
-
-find_package( Boost REQUIRED COMPONENTS thread )
 
 #===============================================================================
 # G E N E R A T E   M E S S A G E S   &   S E R V I C E S
@@ -64,7 +62,6 @@ catkin_package(
         std_msgs
         std_srvs
         lib_atlas
-        DEPENDS Boost thread
 )
 
 #===============================================================================
@@ -76,7 +73,6 @@ set(provider_sonar_SRC_DIR "src/provider_sonar")
 # Include all the directories where source can be found.
 include_directories(
         ${provider_sonar_INCLUDE_DIRS}
-        ${Boost_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -90,6 +86,6 @@ add_executable( ${TARGET_NAME}
         ${provider_sonar_SRC_DIR}/sonar_driver.cc
         ${provider_sonar_SRC_DIR}/sonar_configuration.cc
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc)
-target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
+target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES})
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
 add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
