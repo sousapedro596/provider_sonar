@@ -25,10 +25,11 @@ set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -O3" )
 
 find_package( catkin REQUIRED COMPONENTS
         roscpp
-        message_generation
         std_msgs
-        std_srvs
+        sensor_msgs
+        message_generation
         lib_atlas
+        sonia_msgs
         )
 
 # Declare this project as a catkin package and export the necessary build flags
@@ -37,10 +38,11 @@ catkin_package(
         LIBRARIES
         CATKIN_DEPENDS
         roscpp
-        message_runtime
         std_msgs
-        std_srvs
+        sensor_msgs
+        message_runtime
         lib_atlas
+        sonia_msgs
 )
 
 #===============================================================================
