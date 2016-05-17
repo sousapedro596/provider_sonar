@@ -35,7 +35,6 @@
 
 #include <lib_atlas/maths/numbers.h>
 #include <sonia_msgs/ProviderSonarConfiguration.h>
-#include <sonia_msgs/ScanLine.h>
 #include <sonia_msgs/SonarReconfiguration.h>
 #include "provider_sonar/Serial.h"
 #include "provider_sonar/sonar_driver.h"
@@ -58,11 +57,14 @@ class ProviderSonarNode {
   using PtrList = std::vector<ProviderSonarNode::Ptr>;
   using ConstPtrList = std::vector<ProviderSonarNode::ConstPtr>;
 
-  typedef sonia_msgs::ScanLine ScanlineMsgType;
-  typedef sonia_msgs::IntensityBin IntensityBinMsgType;
   typedef float StepType;
   typedef float AngleType;
   typedef std::vector<uint8_t> IntensityBinsRawType;
+
+  struct IntensityBinMsgType {
+    float distance;
+    uint8_t intensity;
+  };
 
   //============================================================================
   // P U B L I C   C / D T O R S
