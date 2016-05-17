@@ -33,20 +33,20 @@
 #ifndef PROVIDER_SONAR_SONAR_NODE_H
 #define PROVIDER_SONAR_SONAR_NODE_H
 
-#include <ros/ros.h>
-#include "std_msgs/String.h"
+#include <lib_atlas/maths/numbers.h>
+#include <provider_sonar/PointCloudReconfiguration.h>
 #include <provider_sonar/ProviderSonarConfiguration.h>
 #include <provider_sonar/ScanLine.h>
-#include <provider_sonar/SonarReconfiguration.h>
-#include <provider_sonar/SimulationReconfiguration.h>
-#include <provider_sonar/PointCloudReconfiguration.h>
-#include <sstream>
-#include "stdint.h"
-#include <sensor_msgs/PointCloud2.h>
-#include "sonar_configuration.h"
 #include <provider_sonar/Serial.h>
+#include <provider_sonar/SimulationReconfiguration.h>
+#include <provider_sonar/SonarReconfiguration.h>
 #include <provider_sonar/sonar_driver.h>
-#include <lib_atlas/maths/numbers.h>
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sstream>
+#include "sonar_configuration.h"
+#include "std_msgs/String.h"
+#include "stdint.h"
 
 namespace provider_sonar {
 
@@ -83,8 +83,9 @@ class ProviderSonarNode {
       provider_sonar::SonarReconfiguration::Response &resp);
 
   void PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos,
-      uint8_t angle_step_size, uint16_t left_limit, uint16_t right_limit,
-      float gain);
+                                         uint8_t angle_step_size,
+                                         uint16_t left_limit,
+                                         uint16_t right_limit, float gain);
 
   /**
    * This function is a callback associated with the reception of a scanline

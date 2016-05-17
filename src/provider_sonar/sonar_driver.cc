@@ -19,10 +19,10 @@
 // ######################################################################
 
 #include "provider_sonar/sonar_driver.h"
-#include "sonar_messages/sonar_messages.h"
-#include <iostream>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include "sonar_messages/sonar_messages.h"
 #include "stdint.h"
 
 namespace provider_sonar {

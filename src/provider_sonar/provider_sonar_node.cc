@@ -46,15 +46,15 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
     sonar_configuration_pub_ =
-        nh_->advertise<provider_sonar::ProviderSonarConfiguration>
-            ("provider_sonar_configuration", 100);
+        nh_->advertise<provider_sonar::ProviderSonarConfiguration>(
+            "provider_sonar_configuration", 100);
 
-    driver_ = new SonarDriver(
-        static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
-        static_cast<uint8_t>(config_.angle_step_size),
-        static_cast<uint16_t>(config_.left_limit),
-        static_cast<uint16_t>(config_.right_limit),
-        config_.gain, config_.use_debug_mode);
+    driver_ = new SonarDriver(static_cast<uint16_t>(config_.n_bins),
+                              config_.range, config_.vos,
+                              static_cast<uint8_t>(config_.angle_step_size),
+                              static_cast<uint16_t>(config_.left_limit),
+                              static_cast<uint16_t>(config_.right_limit),
+                              config_.gain, config_.use_debug_mode);
 
     sonar_reconfig_server_ =
         nh->advertiseService("sonar_reconfiguration",
@@ -95,12 +95,11 @@ void ProviderSonarNode::Spin() {
       ros::Duration desired(1, 0);
 
       if ((now - previous) > desired) {
-        PublishProviderSonarConfiguration(static_cast<uint16_t>(config_.n_bins),
-                                          config_.range, config_.vos,
-                                          static_cast<uint8_t>(config_.angle_step_size),
-                                          static_cast<uint16_t>(config_.left_limit),
-                                          static_cast<uint16_t>(config_.right_limit),
-                                          config_.gain);
+        PublishProviderSonarConfiguration(
+            static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
+            static_cast<uint8_t>(config_.angle_step_size),
+            static_cast<uint16_t>(config_.left_limit),
+            static_cast<uint16_t>(config_.right_limit), config_.gain);
         previous = ros::Time::now();
       }
     }
@@ -112,7 +111,6 @@ void ProviderSonarNode::Spin() {
 bool ProviderSonarNode::SonarReconfiguration(
     provider_sonar::SonarReconfiguration::Request &req,
     provider_sonar::SonarReconfiguration::Response &resp) {
-
   config_.n_bins = req.n_bins;
   config_.range = static_cast<float>(req.range);
   config_.vos = static_cast<float>(req.vos);
@@ -121,12 +119,11 @@ bool ProviderSonarNode::SonarReconfiguration(
   config_.right_limit = req.right_limit;
   config_.gain = static_cast<float>(req.gain);
 
-  driver_->Reconfigure(static_cast<uint16_t>(config_.n_bins),
-                       config_.range,config_.vos,
-                       static_cast<uint8_t>(config_.angle_step_size),
-                       static_cast<uint16_t>(config_.left_limit),
-                       static_cast<uint16_t>(config_.right_limit),
-                       config_.gain, req.debug_mode);
+  driver_->Reconfigure(
+      static_cast<uint16_t>(config_.n_bins), config_.range, config_.vos,
+      static_cast<uint8_t>(config_.angle_step_size),
+      static_cast<uint16_t>(config_.left_limit),
+      static_cast<uint16_t>(config_.right_limit), config_.gain, req.debug_mode);
   return true;
 }
 

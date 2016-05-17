@@ -42,13 +42,13 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#include <stdint.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
 #include <string>
 #include <vector>
-#include <stdint.h>
 
 //! enum for different serial errors that could occur
 enum serialError {
