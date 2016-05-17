@@ -31,27 +31,6 @@ find_package( catkin REQUIRED COMPONENTS
         lib_atlas
         )
 
-#===============================================================================
-# G E N E R A T E   M E S S A G E S   &   S E R V I C E S
-
-add_message_files(
-        DIRECTORY msg
-        FILES
-        IntensityBin.msg
-        ScanLine.msg
-        ProviderSonarConfiguration.msg
-)
-
-add_service_files(
-        DIRECTORY srv
-        FILES
-        SonarReconfiguration.srv
-        SimulationReconfiguration.srv
-        PointCloudReconfiguration.srv
-)
-
-generate_messages( DEPENDENCIES std_msgs )
-
 # Declare this project as a catkin package and export the necessary build flags
 catkin_package(
         INCLUDE_DIRS src

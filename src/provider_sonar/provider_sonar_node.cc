@@ -46,7 +46,7 @@ ProviderSonarNode::ProviderSonarNode(ros::NodeHandlePtr &nh)
         nh_->advertise<sensor_msgs::PointCloud2>("point_cloud2", 100);
 
     sonar_configuration_pub_ =
-        nh_->advertise<provider_sonar::ProviderSonarConfiguration>(
+        nh_->advertise<sonia_msgs::ProviderSonarConfiguration>(
             "provider_sonar_configuration", 100);
 
     driver_ = new SonarDriver(static_cast<uint16_t>(config_.n_bins),
@@ -109,8 +109,8 @@ void ProviderSonarNode::Spin() {
 //------------------------------------------------------------------------------
 //
 bool ProviderSonarNode::SonarReconfiguration(
-    provider_sonar::SonarReconfiguration::Request &req,
-    provider_sonar::SonarReconfiguration::Response &resp) {
+    sonia_msgs::SonarReconfiguration::Request &req,
+    sonia_msgs::SonarReconfiguration::Response &resp) {
   config_.n_bins = req.n_bins;
   config_.range = static_cast<float>(req.range);
   config_.vos = static_cast<float>(req.vos);
@@ -132,7 +132,7 @@ bool ProviderSonarNode::SonarReconfiguration(
 void ProviderSonarNode::PublishProviderSonarConfiguration(
     uint16_t n_bin, float range, float vos, uint8_t angle_step_size,
     uint16_t left_limit, uint16_t right_limit, float gain) {
-  provider_sonar::ProviderSonarConfiguration provider_sonar_config_msg;
+  sonia_msgs::ProviderSonarConfiguration provider_sonar_config_msg;
 
   provider_sonar_config_msg.n_bin = n_bin;
   provider_sonar_config_msg.range = range;

@@ -34,17 +34,15 @@
 #define PROVIDER_SONAR_SONAR_NODE_H
 
 #include <lib_atlas/maths/numbers.h>
-#include <provider_sonar/PointCloudReconfiguration.h>
-#include <provider_sonar/ProviderSonarConfiguration.h>
-#include <provider_sonar/ScanLine.h>
-#include <provider_sonar/Serial.h>
-#include <provider_sonar/SimulationReconfiguration.h>
-#include <provider_sonar/SonarReconfiguration.h>
-#include <provider_sonar/sonar_driver.h>
+#include <sonia_msgs/ProviderSonarConfiguration.h>
+#include <sonia_msgs/ScanLine.h>
+#include <sonia_msgs/SonarReconfiguration.h>
+#include "provider_sonar/Serial.h"
+#include "provider_sonar/sonar_driver.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sstream>
-#include "sonar_configuration.h"
+#include "provider_sonar/sonar_configuration.h"
 #include "std_msgs/String.h"
 #include "stdint.h"
 
@@ -60,8 +58,8 @@ class ProviderSonarNode {
   using PtrList = std::vector<ProviderSonarNode::Ptr>;
   using ConstPtrList = std::vector<ProviderSonarNode::ConstPtr>;
 
-  typedef ScanLine ScanlineMsgType;
-  typedef IntensityBin IntensityBinMsgType;
+  typedef sonia_msgs::ScanLine ScanlineMsgType;
+  typedef sonia_msgs::IntensityBin IntensityBinMsgType;
   typedef float StepType;
   typedef float AngleType;
   typedef std::vector<uint8_t> IntensityBinsRawType;
@@ -79,8 +77,8 @@ class ProviderSonarNode {
   void Spin();
 
   bool SonarReconfiguration(
-      provider_sonar::SonarReconfiguration::Request &req,
-      provider_sonar::SonarReconfiguration::Response &resp);
+      sonia_msgs::SonarReconfiguration::Request &req,
+      sonia_msgs::SonarReconfiguration::Response &resp);
 
   void PublishProviderSonarConfiguration(uint16_t n_bin, float range, float vos,
                                          uint8_t angle_step_size,
