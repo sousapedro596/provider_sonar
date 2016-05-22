@@ -38,13 +38,13 @@
 
 #include <provider_sonar/Serial.h>
 
-#include <iostream>
-#include <sys/types.h>
 #include <dirent.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdint.h>
 #include <errno.h>
+#include <stdint.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <iostream>
 
 // ######################################################################
 
@@ -576,11 +576,10 @@ int SerialPort::openPort(std::string DeviceName) {
   options.c_iflag &= ~(IGNBRK    // ignore BREAK condition on input
                        | BRKINT  // If IGNBRK is not set, generate SIGINT
                        // on BREAK condition, else read BREAK as \0
-                       |
-                       PARMRK | ISTRIP  // strip off eighth bit
-                       | INLCR          // donot translate NL to CR on input
-                       | IGNCR          // ignore CR
-                       | ICRNL          // translate CR to newline on input
+                       | PARMRK | ISTRIP  // strip off eighth bit
+                       | INLCR            // donot translate NL to CR on input
+                       | IGNCR            // ignore CR
+                       | ICRNL            // translate CR to newline on input
                        | IXON  // disable XON/XOFF flow control on output
                        );
 

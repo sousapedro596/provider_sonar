@@ -19,10 +19,10 @@
 // ######################################################################
 
 #include "provider_sonar/sonar_driver.h"
-#include "sonar_messages/sonar_messages.h"
-#include <iostream>
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include "sonar_messages/sonar_messages.h"
 #include "stdint.h"
 
 namespace provider_sonar {
@@ -38,7 +38,6 @@ SonarDriver::SonarDriver(uint16_t n_bins, float range, float vos,
       its_processing_thread_(),
       its_state_(WaitingForAt),
       state_machine_semaphore_(green),
-      scanning_callback_semaphore_(green),
       state_(reboot),
       its_raw_msg_(),
       its_msg_(),

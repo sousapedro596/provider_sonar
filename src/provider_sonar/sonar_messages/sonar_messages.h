@@ -39,12 +39,12 @@
 #define PROVIDER_SONAR_SONAR_MESSAGES_H
 
 #include <provider_sonar/sonar_driver.h>
-#include "messages_id.h"
-#include <iostream>
-#include "ros/ros.h"
-#include <vector>
 #include <bitset>
 #include <cmath>
+#include <iostream>
+#include <vector>
+#include "messages_id.h"
+#include "ros/ros.h"
 
 namespace provider_sonar {
 
