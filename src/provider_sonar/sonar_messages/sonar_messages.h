@@ -346,7 +346,7 @@ struct mtHeadCommandMsg {
      Ultimate: 0.225° = 4 */
   uint8_t step_angle_size;
 
-  float gain;  //Set the gain value of the transducer
+  float gain;  // Set the gain value of the transducer
 
   //============================================================================
   // P U B L I C   M E T H O D S
@@ -567,7 +567,9 @@ struct mtHeadDataMsg {
     head_control.ignore_sensor = head_control_bitset[15];
 
     range_scale = ((static_cast<uint16_t>(msg.data[20]) |
-                    (static_cast<uint16_t>(msg.data[21]) << 8)) & 0xC0FF) / 10;
+                    (static_cast<uint16_t>(msg.data[21]) << 8)) &
+                   0xC0FF) /
+                  10;
 
     ad_interval = msg.data[33] | static_cast<uint16_t>(msg.data[34]) << 8;
 
@@ -640,13 +642,12 @@ struct mtHeadCommandShortMsg {
 
   //----------------------------------------------------------------------------
   //
-  mtHeadCommandShortMsg(float gain = 0.5f)
-      : gain(gain) {}
+  mtHeadCommandShortMsg(float gain = 0.5f) : gain(gain) {}
 
   //============================================================================
   // P U B L I C   M E M B E R S
 
-  float gain;  //Set the gain value of the transducer
+  float gain;  // Set the gain value of the transducer
 
   //============================================================================
   // P U B L I C   M E T H O D S
@@ -660,7 +661,6 @@ struct mtHeadCommandShortMsg {
                                 0x02, 0x14, 0x13, 0x80, 0x02, 0x1E, 0x5C, 0x32,
                                 0x40, 0x00, 0x69, 0x64, 0x00, 0x00, 0x64, 0x00,
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A};
-
 
     // We set the gain by a value between 0..1 but the sonar want a value
     // between 0..210
