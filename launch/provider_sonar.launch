@@ -2,7 +2,7 @@
     <node name="provider_sonar"
         pkg="provider_sonar"
         type="provider_sonar_node"
-        output="screen" />
+        output="log" />
 
     <rosparam command="load"
         file="$(find provider_sonar)/config/sonar_configuration.yaml"/>
