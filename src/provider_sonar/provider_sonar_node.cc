@@ -215,8 +215,10 @@ void ProviderSonarNode::PublishPointCloud2(
   // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
   float delta_x = static_cast<float>(bin_distance_step *
                                      cos(atlas::DegToRad(scan_angle - 180.0)));
+  ROS_INFO("Delta x : %f", delta_x);
   float delta_y = static_cast<float>(bin_distance_step *
                                      sin(atlas::DegToRad(scan_angle - 180.0)));
+  ROS_INFO("Delta y : %f", delta_y);
 
   // - try with distance * cos(theta)
   float coordinate_x = 0;
@@ -237,16 +239,7 @@ void ProviderSonarNode::PublishPointCloud2(
     memcpy(&point_cloud_msg_.data[i * point_cloud_msg_.point_step +
                                   point_cloud_msg_.fields[3].offset],
            &bin_intensity, sizeof(float));
-    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-    // point_cloud_msg_.fields[0].offset] = coordinate_x;
-    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-    // point_cloud_msg_.fields[1].offset] = coordinate_y;
-    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-    // point_cloud_msg_.fields[2].offset] = 0;
-    // point_cloud_msg_.data[i * point_cloud_msg_.point_step +
-    // point_cloud_msg_.fields[3].offset] =
   }
-  // ROS_INFO("Publishing PointCloud2");
   point_cloud_msg_.header.frame_id = "BODY";
   point_cloud2_pub_.publish(point_cloud_msg_);
 }
