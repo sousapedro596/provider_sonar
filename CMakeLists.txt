@@ -17,7 +17,7 @@ if ( NOT CMAKE_BUILD_TYPE )
             FORCE )
 endif ( NOT CMAKE_BUILD_TYPE )
 
-set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11" )
+set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -Wall" )
 set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -O3" )
 
 #===============================================================================
@@ -25,34 +25,12 @@ set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -O3" )
 
 find_package( catkin REQUIRED COMPONENTS
         roscpp
-        message_generation
         std_msgs
-        std_srvs
+        sensor_msgs
+        message_generation
         lib_atlas
+        sonia_msgs
         )
-
-find_package( Boost REQUIRED COMPONENTS thread )
-
-#===============================================================================
-# G E N E R A T E   M E S S A G E S   &   S E R V I C E S
-
-add_message_files(
-        DIRECTORY msg
-        FILES
-        IntensityBin.msg
-        ScanLine.msg
-        ProviderSonarConfiguration.msg
-)
-
-add_service_files(
-        DIRECTORY srv
-        FILES
-        SonarReconfiguration.srv
-        SimulationReconfiguration.srv
-        PointCloudReconfiguration.srv
-)
-
-generate_messages( DEPENDENCIES std_msgs )
 
 # Declare this project as a catkin package and export the necessary build flags
 catkin_package(
@@ -60,11 +38,11 @@ catkin_package(
         LIBRARIES
         CATKIN_DEPENDS
         roscpp
-        message_runtime
         std_msgs
-        std_srvs
+        sensor_msgs
+        message_runtime
         lib_atlas
-        DEPENDS Boost thread
+        sonia_msgs
 )
 
 #===============================================================================
@@ -76,7 +54,6 @@ set(provider_sonar_SRC_DIR "src/provider_sonar")
 # Include all the directories where source can be found.
 include_directories(
         ${provider_sonar_INCLUDE_DIRS}
-        ${Boost_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -90,6 +67,6 @@ add_executable( ${TARGET_NAME}
         ${provider_sonar_SRC_DIR}/sonar_driver.cc
         ${provider_sonar_SRC_DIR}/sonar_configuration.cc
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc)
-target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES} boost_thread)
+target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES})
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
-add_dependencies(${TARGET_NAME} ${PROJECT_NAME}_gencpp)
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp sonia_msgs_generate_messages_cpp)

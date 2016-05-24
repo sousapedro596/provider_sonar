@@ -21,14 +21,14 @@
 #ifndef PROVIDER_SONAR_SONAR_DRIVER_H
 #define PROVIDER_SONAR_SONAR_DRIVER_H
 
-#include "sonar_messages/messages_id.h"
-#include "sonar_messages/sonar_messages.h"
+#include <memory.h>
+#include <boost/thread.hpp>
 #include <vector>
 #include "Serial.h"
-#include <boost/thread.hpp>
-#include <bits/shared_ptr.h>
-#include "stdint.h"
 #include "sonar_configuration.h"
+#include "sonar_messages/messages_id.h"
+#include "sonar_messages/sonar_messages.h"
+#include "stdint.h"
 
 namespace provider_sonar {
 
@@ -129,8 +129,6 @@ class SonarDriver {
   // protocol
   StateType its_state_;
   Semaphore state_machine_semaphore_;  // State Machine Semaphore
-  Semaphore
-      scanning_callback_semaphore_;  // Scanning callback routine semaphore
   StateMachineStates state_;  // The variable controlling the state machine
   // The current message buffer begin read in
   // the current incoming message begin constructed from itsRawMsg
@@ -158,7 +156,8 @@ class SonarDriver {
   float gain_;
 
   std::function<void(float /*angle*/, float /*meters per bin*/,
-                     std::vector<uint8_t> /*scanline*/)> its_scanline_callback;
+                     std::vector<uint8_t> /*scanline*/)>
+      its_scanline_callback;
 };
 }
 
