@@ -86,11 +86,11 @@ int SerialPort::writeVector(std::vector<uint8_t> const &bytes) {
     return -1;
   }
 
-  int bytesWritten = ::write(dev, &bytes[0], bytes.size());
+  uint32_t bytesWritten = ::write(dev, &bytes[0], bytes.size());
   if (bytesWritten != bytes.size())
     std::cerr << "Error writing to serial port: " << strerror(errno)
               << std::endl;
-  return bytesWritten;
+  return static_cast<int>(bytesWritten);
 }
 
 // ######################################################################
@@ -101,7 +101,7 @@ std::vector<uint8_t> SerialPort::read(size_t bytes) {
   }
 
   std::vector<uint8_t> ret(bytes);
-  int bytesRead = ::read(dev, &ret[0], bytes);
+  uint32_t bytesRead = ::read(dev, &ret[0], bytes);
 
   if (bytesRead < 0) {
     std::cerr << "Error reading from serial port: " << strerror(errno)
