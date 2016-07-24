@@ -153,7 +153,7 @@ void ProviderSonarNode::PublishPointCloud2(
   std::vector<IntensityBinMsgType> bins;
   bins.reserve(intensity_bins.size());
 
-  for (int i = 0; i < intensity_bins.size(); ++i) {
+  for (int i = 0; i < static_cast<int>(intensity_bins.size()); ++i) {
     IntensityBinMsgType bin;
     bin.distance = bin_distance_step * (i + 1);
     bin.intensity = intensity_bins[i];
