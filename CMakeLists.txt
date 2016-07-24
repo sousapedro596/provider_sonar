@@ -69,4 +69,4 @@ add_executable( ${TARGET_NAME}
         ${provider_sonar_SRC_DIR}/provider_sonar_node.cc)
 target_link_libraries( ${TARGET_NAME} ${catkin_LIBRARIES})
 set_target_properties( ${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX )
-add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_generate_messages_cpp sonia_msgs_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_node sonia_msgs_generate_messages_cpp)
