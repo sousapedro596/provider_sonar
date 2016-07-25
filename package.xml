@@ -1,18 +1,16 @@
 <?xml version="1.0"?>
 <package>
   <name>provider_sonar</name>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   <description>The provider_sonar package</description>
 
-  <maintainer email="francis.masse05@gmail.com">Francis Massey</maintainer>
-  <maintainer email="dozois.a@gmail.com">Antoine Dozois</maintainer>
+  <author>Francis Massé</author>
 
+  <maintainer email="francis.masse05@gmail.com">Francis Massé</maintainer>
   <license>GPLv3</license>
   
-  <!-- Required by Catkin --> 
-  <buildtool_depend>catkin</buildtool_depend> 
+  <buildtool_depend>catkin</buildtool_depend>
   
-  <!-- Package Dependencies -->
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
