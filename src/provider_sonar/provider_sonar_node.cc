@@ -192,10 +192,9 @@ void ProviderSonarNode::PublishPointCloud2(
   // - Centered at 0 degree. 180 degree is the middle of the sonar scanline
   float delta_x = static_cast<float>(bin_distance_step *
                                      cos(atlas::DegToRad(scan_angle - 180.0)));
-  ROS_INFO("Delta x : %f", delta_x);
+
   float delta_y = static_cast<float>(bin_distance_step *
                                      sin(atlas::DegToRad(scan_angle - 180.0)));
-  ROS_INFO("Delta y : %f", delta_y);
 
   // - try with distance * cos(theta)
   float coordinate_x = 0;

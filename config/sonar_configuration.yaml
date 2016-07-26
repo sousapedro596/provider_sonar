@@ -19,9 +19,9 @@
 #Right limit of scanning sector
 /provider_sonar/sonar/right_limit_ : 4000
 #Set the gain value of the transducer
-/provider_sonar/sonar/gain_ : 0.5
+/provider_sonar/sonar/gain_ : 0.3
 #Debug mode for the driver 
-/provider_sonar/sonar/use_debug_mode_ : true
+/provider_sonar/sonar/use_debug_mode_ : false
 
 #**************************************
 #********Simulation parameters*********
