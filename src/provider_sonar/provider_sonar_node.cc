@@ -102,6 +102,7 @@ void ProviderSonarNode::Spin() {
             static_cast<uint16_t>(config_.right_limit), config_.gain);
         previous = ros::Time::now();
       }
+        usleep(100);
     }
   }
 }
