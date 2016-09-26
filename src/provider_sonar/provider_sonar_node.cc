@@ -87,6 +87,7 @@ ProviderSonarNode::~ProviderSonarNode() {
 //------------------------------------------------------------------------------
 //
 void ProviderSonarNode::Spin() {
+  ros::Rate loop_rate(10);
   while (!ros::isShuttingDown()) {
     ros::Time previous = ros::Time::now();
     while (nh_->ok()) {
@@ -102,7 +103,7 @@ void ProviderSonarNode::Spin() {
             static_cast<uint16_t>(config_.right_limit), config_.gain);
         previous = ros::Time::now();
       }
-        usleep(100);
+      loop_rate.sleep();
     }
   }
 }
